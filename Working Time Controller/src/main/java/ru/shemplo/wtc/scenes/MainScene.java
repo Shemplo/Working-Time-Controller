@@ -1,19 +1,23 @@
 package ru.shemplo.wtc.scenes;
 
-import java.io.File;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import static java.nio.file.StandardWatchEventKinds.*;
+
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -30,8 +34,6 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.shemplo.wtc.Run;
-import ru.shemplo.wtc.structures.CacheLine;
-import ru.shemplo.wtc.structures.Pair;
 
 public class MainScene extends VBox {
  
@@ -93,126 +95,11 @@ public class MainScene extends VBox {
         }
     }
     
-    private final CacheLine <Long, File> CACHE = new CacheLine <> (1 << 5, Long::compare);
-    private final ConcurrentSkipListSet <File> FILES  = new ConcurrentSkipListSet <> ();
-    private final ConcurrentMap <String, Long> HASHES = new ConcurrentHashMap <> ();
+    private WatchService watcher;
     
-    private final Duration CRAWL_TIMEOUT = Duration.ofSeconds (30),
-                           WORK_TIMEOUT  = Duration.ofMinutes (1);
-    
-    private AtomicLong workingPeriod  = new AtomicLong (0);
-    private Duration   workingTime = Duration.ofMillis (0);
-    
-    private final Queue <File> PENDING_QUEUE = new ConcurrentLinkedQueue <> ();
-    private final AtomicBoolean NEED_CRAWL = new AtomicBoolean (false);
-    private File trackingDirectory = null;
-    private boolean isWorking = false;
-    
-    private final Consumer <Pair <Long, File>> CACHE_TASK = p -> {
-        Long current = p.S.lastModified ();
-        Long prev = HASHES.put (p.S.getAbsolutePath (), current);
-        if (Objects.isNull (prev) || !current.equals (prev)) {
-            workingPeriod.set (WORK_TIMEOUT.toMillis ());
-        }
-    };
-    
-    private final Runnable STOPWATCH_TASK = () -> {
-        long lastLoop = System.currentTimeMillis (),
-             crawlerTimer = 0;
-        
-        while (true) {
-            long current = System.currentTimeMillis (),  
-                 period  = workingPeriod.get (),
-                 delta = current - lastLoop;
-            isWorking = period > 0;
-            
-            if (isWorking) {
-                workingTime = workingTime.plusMillis (delta);
-                
-                // At least it won't decrease the active period
-                workingPeriod.compareAndSet (period, Math.max (0, period - delta));
-            }
-            
-            if (!Objects.isNull (trackingDirectory)) {
-                crawlerTimer = Math.max (0, crawlerTimer - delta);
-                if (crawlerTimer == 0) {
-                    crawlerTimer = CRAWL_TIMEOUT.toMillis ();
-                    NEED_CRAWL.set (true);
-                }
-            }
-            
-            /////////////
-            //// GUI ////
-            updateGUI ();
-            /////////////
-            
-            try {
-                lastLoop = current;
-                Thread.sleep (50);
-            } catch (InterruptedException ie) {
-                System.err.println (ie);
-                return;
-            }
-        }
-    }, CRAWLER_TASK = () -> {
-        while (true) {
-            if (NEED_CRAWL.compareAndSet (true, false)) {
-                File file = trackingDirectory;
-                if (!Objects.isNull (file)) {
-                    PENDING_QUEUE.add (trackingDirectory);
-                }
-            }
-            
-            File tmp = PENDING_QUEUE.poll ();
-            if (!Objects.isNull (tmp)) {
-                if (tmp.isDirectory ()) {
-                    File [] list = tmp.listFiles ();
-                    if (list != null) { 
-                        for (File inList : list) {
-                            PENDING_QUEUE.add (inList);
-                        }
-                    }
-                } else if (tmp.canRead () && !FILES.contains (tmp)) {
-                    FILES.add (tmp);
-                }
-            }  
-            
-            for (File file : FILES) {
-                if (!file.exists () || !file.canRead ()) {
-                    FILES.remove (file);
-                    break;
-                }
-                
-                Long key = CACHE.getLastKnownMinKey ();
-                long modified = file.lastModified ();
-                if (key == null || modified > key) {
-                    CACHE.insert (modified, file);
-                }
-            }
-            
-            try {
-                Thread.sleep (100);
-            } catch (InterruptedException ie) {
-                System.err.println (ie);
-                return;
-            }
-        }
-    }, COMPARATOR_TASK = () -> {
-        while (true) {
-            if (FILES.size () > 0) {
-                CACHE.forEach (CACHE_TASK);
-            }
-            
-            try {
-                Thread.sleep (50);
-            } catch (InterruptedException ie) {
-                System.err.println (ie);
-                return;
-            }
-        }
-    };
-    
-    public MainScene () {
+    public MainScene () throws IOException {
+	this.watcher = FileSystems.getDefault ().newWatchService ();
+	
         setPadding (new Insets (5, 10, 5, 10));
         setBackground (Run.LIGHT_GRAY_BG);
         setBorder (Run.DEFAULT_BORDERS);
@@ -254,52 +141,94 @@ public class MainScene extends VBox {
             stage.show ();
             
             stage.setOnCloseRequest (we -> {
-                String value = field.getText ();
-                if (value != null && value.length () > 0) {
-                    trackingDirectory = new File (value);
-                    workingPeriod.set (WORK_TIMEOUT.toMillis ());
-                }
+                String input = field.getText ().trim ();
+                Thread thread = new Thread (() -> {
+                    Platform.runLater (() -> setDisable (true));
+                    
+                    try {
+                	loadProject (Paths.get (input));
+                    } catch (IOException ioe) {
+                	// TODO: display error on GUI
+                    }
+                    
+                    Platform.runLater (() -> setDisable (false));
+                });
+                thread.start ();
             });
         });
-        
-        Thread t = new Thread (STOPWATCH_TASK);
-        t.setDaemon (true);
-        t.start ();
-        
-        for (int i = 0; i < 2; i++) {
-            t = new Thread (CRAWLER_TASK);
-            t.setDaemon (true);
-            t.start ();
-        }
-        
-        
-        for (int i = 0; i < 1; i++) {
-            t = new Thread (COMPARATOR_TASK);
-            t.setDaemon (true);
-            t.start ();
-        }   
     }
     
-    private void updateGUI () {
-        Platform.runLater (() -> {
-            File tmp = trackingDirectory;
-            if (!Objects.isNull (tmp)) {
-                NAME_VALUE.setText (tmp.getName ());
-                PATH_VALUE.setText (tmp.getAbsolutePath ());
-                autosize ();
-                
-                Run.getStage ().sizeToScene ();
-            }
-            
-            long sec = workingTime.get (ChronoUnit.SECONDS);
-            TIME_VALUE.setText (sec + "s (" + (workingPeriod.get () / 1000.0) + ")");
-            
-            if (isWorking) {
-                TIME_VALUE.setTextFill (Color.GREEN);
-            } else {
-                TIME_VALUE.setTextFill (Color.RED);
-            }
-        });
+    private final Map <WatchKey, Path> KEYS = new HashMap <> ();
+    private Thread listener;
+    
+    private final Runnable LISTENER_TASK = () -> {
+	while (true) {
+	    WatchKey key;
+	    try {
+		key = watcher.take ();
+	    } catch (InterruptedException ie) { return; }
+	    
+	    Path dir = KEYS.get (key);
+	    if (dir == null) { continue; }
+	    
+	    for (WatchEvent <?> event : key.pollEvents ()) {
+		if (event.kind ().equals (OVERFLOW)) {
+		    continue;
+		}
+		
+		@SuppressWarnings ("unchecked")
+		WatchEvent <Path> pathEvent = (WatchEvent <Path>) event;
+		Path child = dir.resolve (pathEvent.context ());
+		
+		if (event.kind ().equals (ENTRY_CREATE)) {
+		    try {
+			if (Files.isDirectory (child, LinkOption.NOFOLLOW_LINKS)) {
+			    // TODO: increase working period
+			    registerAll (child);
+			}
+		    } catch (IOException ioe) {}
+		} else if (event.kind ().equals (ENTRY_MODIFY)) {
+		    System.out.println (child.getFileName () + " is modified");
+		    // TODO: increase working period
+		}
+	    }
+	    
+	    if (!key.reset ()) { KEYS.remove (key); }
+	}
+    };
+    
+    private void loadProject (Path root) throws IOException {
+	if (listener != null) {
+	    try {
+		listener.interrupt ();
+		listener.join ();
+	    } catch (InterruptedException ie) {
+		System.err.println (ie);
+	    } finally { listener = null; }
+	}
+	
+        KEYS.clear ();
+        
+        listener = new Thread (LISTENER_TASK);
+        registerAll (root);
+        listener.start ();
+    }
+    
+    private final void registerAll (Path path) throws IOException {
+	Files.walkFileTree (path, new SimpleFileVisitor <Path> () {
+	    
+	    @Override
+	    public FileVisitResult preVisitDirectory (Path dir, BasicFileAttributes attrs) 
+		    throws IOException {
+		register (dir);
+	        return FileVisitResult.CONTINUE;
+	    }
+	    
+	});
+    }
+    
+    private final void register (Path dir) throws IOException {
+	KEYS.put (dir.register (watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), dir);
     }
     
 }
