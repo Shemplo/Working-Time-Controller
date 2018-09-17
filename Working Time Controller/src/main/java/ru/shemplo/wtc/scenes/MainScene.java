@@ -4,11 +4,11 @@ import java.io.File;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -103,6 +103,7 @@ public class MainScene extends VBox {
     private AtomicLong workingPeriod  = new AtomicLong (0);
     private Duration   workingTime = Duration.ofMillis (0);
     
+    private final Queue <File> PENDING_QUEUE = new ConcurrentLinkedQueue <> ();
     private final AtomicBoolean NEED_CRAWL = new AtomicBoolean (false);
     private File trackingDirectory = null;
     private boolean isWorking = false;
@@ -154,33 +155,27 @@ public class MainScene extends VBox {
             }
         }
     }, CRAWLER_TASK = () -> {
-        Queue <File> queue = new LinkedList <> ();
-        
         while (true) {
             if (NEED_CRAWL.compareAndSet (true, false)) {
-                System.out.println ("Crawler started in " + Thread.currentThread ().getName ());
-                File tmp = trackingDirectory;
-                if (tmp == null) { continue; }
-                
-                queue.add (tmp);
-                while (!queue.isEmpty ()) {
-                    File file = queue.poll ();
-                    
-                    if (file.isDirectory ()) {
-                        File [] list = file.listFiles ();
-                        if (list == null) { continue; }
-                        
-                        for (File temp : list) {
-                            queue.add (temp);
-                        }
-                    } else if (file.canRead () && !FILES.contains (file)) {
-                        FILES.add (file);
-                    }
+                File file = trackingDirectory;
+                if (!Objects.isNull (file)) {
+                    PENDING_QUEUE.add (trackingDirectory);
                 }
-                
-                System.out.println ("Crawler finished");
-                continue;
             }
+            
+            File tmp = PENDING_QUEUE.poll ();
+            if (!Objects.isNull (tmp)) {
+                if (tmp.isDirectory ()) {
+                    File [] list = tmp.listFiles ();
+                    if (list != null) { 
+                        for (File inList : list) {
+                            PENDING_QUEUE.add (inList);
+                        }
+                    }
+                } else if (tmp.canRead () && !FILES.contains (tmp)) {
+                    FILES.add (tmp);
+                }
+            }  
             
             for (File file : FILES) {
                 if (!file.exists () || !file.canRead ()) {

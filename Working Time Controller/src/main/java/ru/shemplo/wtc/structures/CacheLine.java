@@ -134,7 +134,7 @@ public class CacheLine <K extends Comparable <K>, V> {
             carriage += 1;
         }
         
-        if (!Objects.isNull (current)) {
+        if (!Objects.isNull (current) && !Objects.isNull (lastKnownMinKey)) {
             if (ORDER.compare (current.KEY, lastKnownMinKey) < 0) {
                 this.lastKnownMinKey = current.KEY;
             }
