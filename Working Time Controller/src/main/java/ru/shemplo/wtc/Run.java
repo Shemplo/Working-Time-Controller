@@ -36,7 +36,11 @@ public class Run extends Application {
         launch (args);
     }
     
-    public static Stage stage;
+    private static Stage stage;
+    
+    public static Stage getStage () {
+        return stage;
+    }
     
     private Point2D capture = null;
     

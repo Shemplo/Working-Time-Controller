@@ -10,7 +10,10 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -27,6 +30,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.shemplo.wtc.Run;
+import ru.shemplo.wtc.structures.CacheLine;
+import ru.shemplo.wtc.structures.Pair;
 
 public class MainScene extends VBox {
  
@@ -88,82 +93,57 @@ public class MainScene extends VBox {
         }
     }
     
-    private final Duration TRACK_TIMEOUT = Duration.ofSeconds (10),
+    private final CacheLine <Long, File> CACHE = new CacheLine <> (1 << 5, Long::compare);
+    private final ConcurrentSkipListSet <File> FILES  = new ConcurrentSkipListSet <> ();
+    private final ConcurrentMap <String, Long> HASHES = new ConcurrentHashMap <> ();
+    
+    private final Duration CRAWL_TIMEOUT = Duration.ofSeconds (30),
                            WORK_TIMEOUT  = Duration.ofMinutes (1);
     
     private AtomicLong workingPeriod  = new AtomicLong (0);
     private Duration   workingTime = Duration.ofMillis (0);
     
-    private Queue <File> PENDING_FILES = new LinkedList <> (),
-                         PENDING_DIRS  = new LinkedList <> ();
+    private final AtomicBoolean NEED_CRAWL = new AtomicBoolean (false);
     private File trackingDirectory = null;
+    private boolean isWorking = false;
     
-    private ConcurrentMap <String, Long> HASHES = new ConcurrentHashMap <> ();
+    private final Consumer <Pair <Long, File>> CACHE_TASK = p -> {
+        Long current = p.S.lastModified ();
+        Long prev = HASHES.put (p.S.getAbsolutePath (), current);
+        if (Objects.isNull (prev) || !current.equals (prev)) {
+            workingPeriod.set (WORK_TIMEOUT.toMillis ());
+        }
+    };
     
     private final Runnable STOPWATCH_TASK = () -> {
-        long lastLoop = System.currentTimeMillis ();
-        long crawlerPastTime = 0;
-        
-        @SuppressWarnings ("unused")
-        long s = 0, e = 0;
-        boolean isCrawlerRunning = false;
+        long lastLoop = System.currentTimeMillis (),
+             crawlerTimer = 0;
         
         while (true) {
             long current = System.currentTimeMillis (),  
                  period  = workingPeriod.get (),
                  delta = current - lastLoop;
-            if (period > 0) {
+            isWorking = period > 0;
+            
+            if (isWorking) {
                 workingTime = workingTime.plusMillis (delta);
                 
                 // At least it won't decrease the active period
                 workingPeriod.compareAndSet (period, Math.max (0, period - delta));
             }
             
-            File dir = trackingDirectory;
-            if (!Objects.isNull (dir)) {
-                if (crawlerPastTime >= TRACK_TIMEOUT.toMillis () && !isCrawlerRunning) {
-                    crawlerPastTime = 0;
-                    
-                    synchronized (PENDING_DIRS) {
-                        PENDING_DIRS.add (trackingDirectory);
-                        PENDING_DIRS.notifyAll ();
-                        
-                        s = System.currentTimeMillis ();
-                        isCrawlerRunning = true;
-                    }
+            if (!Objects.isNull (trackingDirectory)) {
+                crawlerTimer = Math.max (0, crawlerTimer - delta);
+                if (crawlerTimer == 0) {
+                    crawlerTimer = CRAWL_TIMEOUT.toMillis ();
+                    NEED_CRAWL.set (true);
                 }
-                
-                if (PENDING_DIRS.isEmpty () && isCrawlerRunning) {
-                    e = System.currentTimeMillis ();
-                    isCrawlerRunning = false;
-                    
-                    //String format = "Crawler done word by %d ms";
-                    //System.out.println (String.format (format, e - s));
-                    //System.out.println ("Pending files: " + PENDING_FILES.size ());
-                }
-                
-                crawlerPastTime += delta;
             }
             
-            Platform.runLater (() -> {
-                File tmp = trackingDirectory;
-                if (!Objects.isNull (tmp)) {
-                    NAME_VALUE.setText (tmp.getName ());
-                    PATH_VALUE.setText (tmp.getAbsolutePath ());
-                    autosize ();
-                    
-                    Run.stage.sizeToScene ();
-                }
-                
-                long sec = workingTime.get (ChronoUnit.SECONDS);
-                TIME_VALUE.setText (sec + "s");
-                
-                if (period > 0) {
-                    TIME_VALUE.setTextFill (Color.GREEN);
-                } else {
-                    TIME_VALUE.setTextFill (Color.RED);
-                }
-            });
+            /////////////
+            //// GUI ////
+            updateGUI ();
+            /////////////
             
             try {
                 lastLoop = current;
@@ -174,105 +154,65 @@ public class MainScene extends VBox {
             }
         }
     }, CRAWLER_TASK = () -> {
-        List <File> files = new ArrayList <> (), 
-                    dirs = new ArrayList <> ();
+        Queue <File> queue = new LinkedList <> ();
         
         while (true) {
-            File file = null;
-            synchronized (PENDING_DIRS) {
-                while (PENDING_DIRS.isEmpty ()) {
-                    try {
-                        PENDING_DIRS.wait ();
-                    } catch (InterruptedException ie) {
-                        System.err.println (ie);
-                        return;
+            if (NEED_CRAWL.compareAndSet (true, false)) {
+                System.out.println ("Crawler started in " + Thread.currentThread ().getName ());
+                File tmp = trackingDirectory;
+                if (tmp == null) { continue; }
+                
+                queue.add (tmp);
+                while (!queue.isEmpty ()) {
+                    File file = queue.poll ();
+                    
+                    if (file.isDirectory ()) {
+                        File [] list = file.listFiles ();
+                        if (list == null) { continue; }
+                        
+                        for (File temp : list) {
+                            queue.add (temp);
+                        }
+                    } else if (file.canRead () && !FILES.contains (file)) {
+                        FILES.add (file);
                     }
                 }
                 
-                file = PENDING_DIRS.poll ();
+                System.out.println ("Crawler finished");
+                continue;
             }
             
-            if (file.isDirectory ()) {
-                files.clear (); dirs.clear ();
-                File [] list = file.listFiles ();
-                if (Objects.isNull (list)) { System.out.println (file); continue; }
-                
-                for (File f : list) {
-                    if (f == null || !f.exists ()) { continue; }
-                    if (f.isDirectory ()) {
-                        dirs.add (f);
-                    } else if (f.canRead ()) {
-                        files.add (f);
-                    }
+            for (File file : FILES) {
+                if (!file.exists () || !file.canRead ()) {
+                    FILES.remove (file);
+                    break;
                 }
                 
-                synchronized (PENDING_FILES) {
-                    PENDING_FILES.addAll (files);
-                    PENDING_FILES.notifyAll ();
+                Long key = CACHE.getLastKnownMinKey ();
+                long modified = file.lastModified ();
+                if (key == null || modified > key) {
+                    CACHE.insert (modified, file);
                 }
-                synchronized (PENDING_DIRS) {
-                    PENDING_DIRS.addAll (dirs);
-                    PENDING_DIRS.notifyAll ();
-                }
-            } else if (file.canRead ()) {
-                // In case of first input path is a file
-                synchronized (PENDING_FILES) {
-                    PENDING_FILES.add (file);
-                    PENDING_FILES.notifyAll ();
-                }
+            }
+            
+            try {
+                Thread.sleep (100);
+            } catch (InterruptedException ie) {
+                System.err.println (ie);
+                return;
             }
         }
     }, COMPARATOR_TASK = () -> {
-        /*
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance ("SHA-1");
-        } catch (NoSuchAlgorithmException nsae) {
-            System.err.println (nsae);
-            return;
-        }
-        
-        byte [] buffer = new byte [4096];
-        */
-        
         while (true) {
-            File file = null;
-            synchronized (PENDING_FILES) {
-                while (PENDING_FILES.isEmpty ()) {
-                    try {
-                        PENDING_FILES.wait ();
-                    } catch (InterruptedException ie) {
-                        System.err.println (ie);
-                        return;
-                    }
-                }
-                
-                file = PENDING_FILES.poll ();
+            if (FILES.size () > 0) {
+                CACHE.forEach (CACHE_TASK);
             }
             
-            /*
-            try (
-                InputStream is = new FileInputStream (file);
-            ) {
-                int read = -1;
-                while ((read = is.read (buffer, 0, buffer.length)) != -1) {
-                    digest.update (buffer, 0, read);
-                }
-                
-                String hash = new String (digest.digest ());
-                String fileName = file.getAbsolutePath ();
-                if (!hash.equals (HASHES.put (fileName, hash))) {
-                    workingPeriod.set (WORK_TIMEOUT.toMillis ());
-                }
-            } catch (IOException ioe) {
-                continue;
-            }
-            */
-            
-            String fileName = file.getAbsolutePath ();
-            Long modified = file.lastModified ();
-            if (!modified.equals (HASHES.put (fileName, modified))) {
-                workingPeriod.set (WORK_TIMEOUT.toMillis ());
+            try {
+                Thread.sleep (50);
+            } catch (InterruptedException ie) {
+                System.err.println (ie);
+                return;
             }
         }
     };
@@ -304,7 +244,7 @@ public class MainScene extends VBox {
             Label label = new Label ("Project path:  ");
             horizontal.getChildren ().add (label);
             
-            String defaultPath = "C:\\Users\\Public\\workspace_for_prj\\Working Time Controller";
+            String defaultPath = "C:\\Users\\Shemp\\git\\Working-Time-Controller";
             TextField field = new TextField (defaultPath);
             horizontal.getChildren ().add (field);
             field.setMinWidth (300);
@@ -313,7 +253,7 @@ public class MainScene extends VBox {
             Stage stage = new Stage ();
             stage.initModality (Modality.APPLICATION_MODAL);
             stage.setTitle ("Project settings");
-            stage.initOwner (Run.stage);
+            stage.initOwner (Run.getStage ());
             stage.setResizable (false);
             stage.setScene (scene);
             stage.show ();
@@ -342,9 +282,29 @@ public class MainScene extends VBox {
             t = new Thread (COMPARATOR_TASK);
             t.setDaemon (true);
             t.start ();
-        }
-        
-        
+        }   
+    }
+    
+    private void updateGUI () {
+        Platform.runLater (() -> {
+            File tmp = trackingDirectory;
+            if (!Objects.isNull (tmp)) {
+                NAME_VALUE.setText (tmp.getName ());
+                PATH_VALUE.setText (tmp.getAbsolutePath ());
+                autosize ();
+                
+                Run.getStage ().sizeToScene ();
+            }
+            
+            long sec = workingTime.get (ChronoUnit.SECONDS);
+            TIME_VALUE.setText (sec + "s (" + (workingPeriod.get () / 1000.0) + ")");
+            
+            if (isWorking) {
+                TIME_VALUE.setTextFill (Color.GREEN);
+            } else {
+                TIME_VALUE.setTextFill (Color.RED);
+            }
+        });
     }
     
 }
