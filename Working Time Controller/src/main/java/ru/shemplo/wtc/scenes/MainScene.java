@@ -14,10 +14,14 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -95,6 +99,34 @@ public class MainScene extends VBox {
         }
     }
     
+    public void updateGUI () {
+	Platform.runLater (() -> {
+	    Path tmp = trackingPath;
+            if (!Objects.isNull (tmp)) {
+                PATH_VALUE.setText (tmp.toAbsolutePath ().toString ());
+                NAME_VALUE.setText (tmp.getFileName ().toString ());
+                autosize ();
+                
+                Run.getStage ().sizeToScene ();
+            }
+            
+            long secondz = workingTime.get (ChronoUnit.SECONDS),
+        	 period  = workingPeriod.get (),
+        	 seconds = secondz % 60,
+        	 minutes = (secondz = secondz / 60) % 60,
+        	 hours   = (secondz = secondz / 60);
+            String format = String.format ("%02d:%02d:%02d (%02.01fs)", 
+        	hours, minutes, seconds, period / 1000.0);
+            TIME_VALUE.setText (format);
+            
+            if (period > 0) {
+                TIME_VALUE.setTextFill (Color.GREEN);
+            } else {
+                TIME_VALUE.setTextFill (Color.RED);
+            }
+	});
+    }
+    
     private WatchService watcher;
     
     public MainScene () throws IOException {
@@ -158,8 +190,14 @@ public class MainScene extends VBox {
         });
     }
     
+    private final Duration WORK_TIMEOUT = Duration.ofMinutes (1);
+    private final AtomicLong workingPeriod = new AtomicLong (0);
+    private Duration workingTime = Duration.ofMillis (0);
+    private Path trackingPath = null;
+    
     private final Map <WatchKey, Path> KEYS = new HashMap <> ();
-    private Thread listener;
+    private final List <Thread> THREADS = new ArrayList <> ();
+    private final AtomicLong LAST_LOOP = new AtomicLong ();
     
     private final Runnable LISTENER_TASK = () -> {
 	while (true) {
@@ -183,35 +221,75 @@ public class MainScene extends VBox {
 		if (event.kind ().equals (ENTRY_CREATE)) {
 		    try {
 			if (Files.isDirectory (child, LinkOption.NOFOLLOW_LINKS)) {
-			    // TODO: increase working period
+			    workingPeriod.set (WORK_TIMEOUT.toMillis () / 4);
 			    registerAll (child);
 			}
 		    } catch (IOException ioe) {}
 		} else if (event.kind ().equals (ENTRY_MODIFY)) {
-		    System.out.println (child.getFileName () + " is modified");
-		    // TODO: increase working period
+		    workingPeriod.set (WORK_TIMEOUT.toMillis ());
+		    // TODO: change comparator
 		}
 	    }
 	    
 	    if (!key.reset ()) { KEYS.remove (key); }
 	}
+    }, CHRONO_TASK = () -> {
+	LAST_LOOP.set (System.currentTimeMillis ());
+	
+	while (true) {
+	    long current  = System.currentTimeMillis (),
+		 lastLoop = LAST_LOOP.get ();
+	    long period = workingPeriod.get ();
+	    long delta = current - lastLoop;
+		    
+	    if (LAST_LOOP.compareAndSet (lastLoop, current)) {
+		workingPeriod.compareAndSet (period, Math.max (0, period - delta));
+		if (workingPeriod.get () > 0) {
+		    workingTime = workingTime.plusMillis (delta);
+		}
+	    }
+	    
+	    /* GUI */ updateGUI ();
+	    
+	    try {
+		Thread.sleep (100);
+	    } catch (InterruptedException ie) { return; }
+	}
     };
     
     private void loadProject (Path root) throws IOException {
-	if (listener != null) {
+	// Closing previous project (if it was opened)
+	for (Thread thread : THREADS) {
+	    if (thread == null) { continue; }
+	    
 	    try {
-		listener.interrupt ();
-		listener.join ();
+		thread.interrupt ();
+		thread.join (1000);
 	    } catch (InterruptedException ie) {
 		System.err.println (ie);
-	    } finally { listener = null; }
+	    }
 	}
-	
+
+	THREADS.clear ();
         KEYS.clear ();
         
-        listener = new Thread (LISTENER_TASK);
+        // Starting threads and loading new project
+        this.workingPeriod.set (WORK_TIMEOUT.toMillis () / 4);
+        this.trackingPath = root;
+        
+        Thread t = new Thread (LISTENER_TASK);
+        t.setDaemon (true);
+        THREADS.add (t);
+        
+        t = new Thread (CHRONO_TASK);
+        t.setDaemon (true);
+        THREADS.add (t);
+        
         registerAll (root);
-        listener.start ();
+        
+        for (Thread thread : THREADS) {
+            thread.start ();
+        }
     }
     
     private final void registerAll (Path path) throws IOException {
