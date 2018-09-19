@@ -31,14 +31,11 @@
 				fx:id="path_sl" />
 		</HBox>
 		
-		<HBox alignment="CENTER_LEFT">
+		<HBox alignment="BASELINE_LEFT">
 			<Label text="Working time: "/>
 			<Label
 				text="00:00:00 (00.0 s)" 
 				fx:id="time_sl" />
-			<VBox.margin>
-				<Insets top="10" />
-			</VBox.margin>
 		</HBox>
 	</VBox>
 	

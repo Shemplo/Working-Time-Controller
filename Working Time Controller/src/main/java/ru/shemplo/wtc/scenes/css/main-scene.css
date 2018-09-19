@@ -1,6 +1,6 @@
 
 HBox {
-	-fx-padding: 10 0 0 0;
+	-fx-padding: 5 0 0 0;
 }
 
 Label {
@@ -17,8 +17,7 @@ Label {
 }
 
 #time_sl {
-	-fx-font-weight: bold;
-	-fx-font-size: 24;
+	-fx-font-size: 22;
 }
 
 Button {
