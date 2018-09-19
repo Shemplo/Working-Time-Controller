@@ -92,7 +92,7 @@ public class ProjectsScene extends StackPane {
     	
     } 
 	
-	private int selectedIndex = -1;
+	private int selectedIndex = 0;
 	
 	public void init (final Stage stage) {
 		ChoiceBox <String> projects = SCB.PROJECTS.get (this);
@@ -103,6 +103,8 @@ public class ProjectsScene extends StackPane {
 								.map (pd -> pd.NAME.read () + " - " + pd.PATH.read ())
 								.collect (Collectors.toList ());
 		projects.setItems (FXCollections.observableArrayList (list));
+		projects.getSelectionModel ().select (0);
+		
 		if (list.size () == 0) { 
 			projects.setDisable (true);
 			open.setDisable (true);

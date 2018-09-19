@@ -5,6 +5,9 @@ import static java.lang.ClassLoader.*;
 import java.io.IOException;
 import java.net.URL;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
+
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.LocalAttribute;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -146,8 +149,8 @@ public class MainScene extends StackPane {
                	 seconds = secondz % 60,
                	 minutes = (secondz = secondz / 60) % 60,
                	 hours   = (secondz = secondz / 60);
-    		String format = String.format ("%02d:%02d:%02d (%02.01fs)", 
-    							hours, minutes, seconds, period / 1000.0);
+    		String format = String.format (Locale.ENGLISH, "%02d:%02d:%02d (%02.01fs)", 
+    										hours, minutes, seconds, period / 1000.0);
     		Label time = SL.TIME.get (scene);
     		time.setTextFill (period > 0 ? Color.GREEN : Color.RED);
     		time.setText (format);
