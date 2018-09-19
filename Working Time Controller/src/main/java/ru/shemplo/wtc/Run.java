@@ -1,11 +1,13 @@
 package ru.shemplo.wtc;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -17,6 +19,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import ru.shemplo.wtc.logic.StateKeeper;
 import ru.shemplo.wtc.scenes.MainScene;
 
 public class Run extends Application {
@@ -32,11 +35,17 @@ public class Run extends Application {
         WHITE_BG      = new Background (new BackgroundFill (Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)),
         LIGHT_GRAY_BG = new Background (new BackgroundFill (Color.rgb (245, 245, 245), CornerRadii.EMPTY, Insets.EMPTY));
     
+    public static final Image ICON = new Image (Run.class.getResourceAsStream ("gfx/clock.png"));
+    
+    public static final StateKeeper KEEPER = StateKeeper.getInstance ();
+    
     public static void main (String [] args) {
         launch (args);
     }
     
+    ///////////////////////////
     private static Stage stage;
+    ///////////////////////////
     
     public static Stage getStage () {
         return stage;
@@ -58,6 +67,7 @@ public class Run extends Application {
         });
         
         stage.initStyle (StageStyle.UNDECORATED);
+        stage.getIcons ().add (ICON);
         stage.setResizable (false);
         stage.setTitle (TITLE);
         stage.setScene (scene);

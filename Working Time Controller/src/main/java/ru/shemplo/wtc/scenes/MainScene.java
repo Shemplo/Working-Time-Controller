@@ -100,8 +100,8 @@ public class MainScene extends VBox {
     }
     
     public void updateGUI () {
-	Platform.runLater (() -> {
-	    Path tmp = trackingPath;
+    	Platform.runLater (() -> {
+    	    Path tmp = trackingPath;
             if (!Objects.isNull (tmp)) {
                 PATH_VALUE.setText (tmp.toAbsolutePath ().toString ());
                 NAME_VALUE.setText (tmp.getFileName ().toString ());
@@ -111,10 +111,10 @@ public class MainScene extends VBox {
             }
             
             long secondz = workingTime.get (ChronoUnit.SECONDS),
-        	 period  = workingPeriod.get (),
-        	 seconds = secondz % 60,
-        	 minutes = (secondz = secondz / 60) % 60,
-        	 hours   = (secondz = secondz / 60);
+            	 period  = workingPeriod.get (),
+            	 seconds = secondz % 60,
+            	 minutes = (secondz = secondz / 60) % 60,
+            	 hours   = (secondz = secondz / 60);
             String format = String.format ("%02d:%02d:%02d (%02.01fs)", 
         	hours, minutes, seconds, period / 1000.0);
             TIME_VALUE.setText (format);
@@ -124,7 +124,7 @@ public class MainScene extends VBox {
             } else {
                 TIME_VALUE.setTextFill (Color.RED);
             }
-	});
+    	});
     }
     
     private WatchService watcher;
@@ -163,13 +163,16 @@ public class MainScene extends VBox {
             horizontal.getChildren ().add (field);
             field.setMinWidth (300);
             
+            //Scene scene = new Scene (new OpenProjectScene ());
             Scene scene = new Scene (vertical);
+            
             Stage stage = new Stage ();
             stage.initModality (Modality.APPLICATION_MODAL);
             stage.setTitle ("Project settings");
             stage.initOwner (Run.getStage ());
             stage.setResizable (false);
             stage.setScene (scene);
+            stage.sizeToScene ();
             stage.show ();
             
             stage.setOnCloseRequest (we -> {
@@ -178,9 +181,9 @@ public class MainScene extends VBox {
                     Platform.runLater (() -> setDisable (true));
                     
                     try {
-                	loadProject (Paths.get (input));
+                    	loadProject (Paths.get (input));
                     } catch (IOException ioe) {
-                	// TODO: display error on GUI
+                		// TODO: display error on GUI
                     }
                     
                     Platform.runLater (() -> setDisable (false));
@@ -200,81 +203,95 @@ public class MainScene extends VBox {
     private final AtomicLong LAST_LOOP = new AtomicLong ();
     
     private final Runnable LISTENER_TASK = () -> {
-	while (true) {
-	    WatchKey key;
-	    try {
-		key = watcher.take ();
-	    } catch (InterruptedException ie) { return; }
-	    
-	    Path dir = KEYS.get (key);
-	    if (dir == null) { continue; }
-	    
-	    for (WatchEvent <?> event : key.pollEvents ()) {
-		if (event.kind ().equals (OVERFLOW)) {
-		    continue;
-		}
-		
-		@SuppressWarnings ("unchecked")
-		WatchEvent <Path> pathEvent = (WatchEvent <Path>) event;
-		Path child = dir.resolve (pathEvent.context ());
-		
-		if (event.kind ().equals (ENTRY_CREATE)) {
-		    try {
-			if (Files.isDirectory (child, LinkOption.NOFOLLOW_LINKS)) {
-			    workingPeriod.set (WORK_TIMEOUT.toMillis () / 4);
-			    registerAll (child);
-			}
-		    } catch (IOException ioe) {}
-		} else if (event.kind ().equals (ENTRY_MODIFY)) {
-		    workingPeriod.set (WORK_TIMEOUT.toMillis ());
-		    // TODO: change comparator
-		}
-	    }
-	    
-	    if (!key.reset ()) { KEYS.remove (key); }
-	}
+    	while (true) {
+    	    WatchKey key;
+    	    try {
+    	    	key = watcher.take ();
+    	    } catch (InterruptedException ie) { return; }
+    	    
+    	    Path dir = KEYS.get (key);
+    	    if (dir == null) { continue; }
+    	    
+    	    for (WatchEvent <?> event : key.pollEvents ()) {
+        		if (event.kind ().equals (OVERFLOW)) {
+        		    continue;
+        		}
+        		
+        		@SuppressWarnings ("unchecked")
+        		WatchEvent <Path> pathEvent = (WatchEvent <Path>) event;
+        		Path child = dir.resolve (pathEvent.context ());
+        		
+        		if (event.kind ().equals (ENTRY_CREATE)) {
+        		    try {
+            			if (Files.isDirectory (child, LinkOption.NOFOLLOW_LINKS)) {
+            				long time = workingPeriod.get (), 
+            					 suggest = WORK_TIMEOUT.toMillis () / 4;
+            			    workingPeriod.set (Math.max (time, suggest));
+            			    registerAll (child);
+            			}
+        		    } catch (IOException ioe) {}
+        		} else if (event.kind ().equals (ENTRY_MODIFY)) {
+        		    workingPeriod.set (WORK_TIMEOUT.toMillis ());
+        		    // TODO: change comparator
+        		}
+    	    }
+    	    
+    	    if (!key.reset ()) { KEYS.remove (key); }
+    	}
     }, CHRONO_TASK = () -> {
-	LAST_LOOP.set (System.currentTimeMillis ());
-	
-	while (true) {
-	    long current  = System.currentTimeMillis (),
-		 lastLoop = LAST_LOOP.get ();
-	    long period = workingPeriod.get ();
-	    long delta = current - lastLoop;
-		    
-	    if (LAST_LOOP.compareAndSet (lastLoop, current)) {
-		workingPeriod.compareAndSet (period, Math.max (0, period - delta));
-		if (workingPeriod.get () > 0) {
-		    workingTime = workingTime.plusMillis (delta);
-		}
-	    }
-	    
-	    /* GUI */ updateGUI ();
-	    
-	    try {
-		Thread.sleep (100);
-	    } catch (InterruptedException ie) { return; }
-	}
+    	LAST_LOOP.set (System.currentTimeMillis ());
+    	
+    	while (true) {
+    	    long current  = System.currentTimeMillis (),
+    	    	 lastLoop = LAST_LOOP.get ();
+    	    long period = workingPeriod.get ();
+    	    long delta = current - lastLoop;
+    		    
+    	    if (LAST_LOOP.compareAndSet (lastLoop, current)) {
+        		workingPeriod.compareAndSet (period, Math.max (0, period - delta));
+        		if (workingPeriod.get () > 0) {
+        		    workingTime = workingTime.plusMillis (delta);
+        		}
+    	    }
+    	    
+    	    /* GUI */ updateGUI ();
+    	    
+    	    try {
+    	    	Thread.sleep (100);
+    	    } catch (InterruptedException ie) { return; }
+    	}
     };
     
     private void loadProject (Path root) throws IOException {
-	// Closing previous project (if it was opened)
-	for (Thread thread : THREADS) {
-	    if (thread == null) { continue; }
-	    
-	    try {
-		thread.interrupt ();
-		thread.join (1000);
-	    } catch (InterruptedException ie) {
-		System.err.println (ie);
-	    }
-	}
-
-	THREADS.clear ();
+    	// Closing previous project (if it was opened)
+    	for (Thread thread : THREADS) {
+    	    if (thread == null) { continue; }
+    	    
+    	    try {
+    	    	thread.interrupt ();
+    	    	thread.join (1000);
+    	    } catch (InterruptedException ie) {
+    		System.err.println (ie);
+    	    }
+    	}
+    	
+    	if (trackingPath != null) {
+    		String path = trackingPath.toString (), 
+    			   name = trackingPath.getFileName ().toString ();
+    		long time = workingTime.toMillis ();
+    		Run.KEEPER.updateProject (path, name, time);
+    	}
+    	
+    	Run.KEEPER.dump ();
+    	THREADS.clear ();
         KEYS.clear ();
         
         // Starting threads and loading new project
+        String path = root.toString ();
+        long time = Run.KEEPER.getProjectTime (path);
+        
         this.workingPeriod.set (WORK_TIMEOUT.toMillis () / 4);
+        workingTime = Duration.ofMillis (time);
         this.trackingPath = root;
         
         Thread t = new Thread (LISTENER_TASK);
@@ -293,20 +310,20 @@ public class MainScene extends VBox {
     }
     
     private final void registerAll (Path path) throws IOException {
-	Files.walkFileTree (path, new SimpleFileVisitor <Path> () {
-	    
-	    @Override
-	    public FileVisitResult preVisitDirectory (Path dir, BasicFileAttributes attrs) 
-		    throws IOException {
-		register (dir);
-	        return FileVisitResult.CONTINUE;
-	    }
-	    
-	});
+    	Files.walkFileTree (path, new SimpleFileVisitor <Path> () {
+    	    
+    	    @Override
+    	    public FileVisitResult preVisitDirectory (Path dir, BasicFileAttributes attrs) 
+    		    throws IOException {
+    			register (dir);
+    	        return FileVisitResult.CONTINUE;
+    	    }
+    	    
+    	});
     }
     
     private final void register (Path dir) throws IOException {
-	KEYS.put (dir.register (watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), dir);
+    	KEYS.put (dir.register (watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), dir);
     }
     
 }
