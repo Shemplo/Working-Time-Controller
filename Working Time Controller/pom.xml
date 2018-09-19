@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ru.shemplo</groupId>
   <artifactId>wtc</artifactId>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   <name>Working Time Controller</name>
   
   <build>
@@ -51,4 +51,6 @@
 	  <version>26.0-jre</version>
 	</dependency>
   </dependencies>
+  <url>https://github.com/Shemplo/Working-Time-Controller</url>
+  <description>Simple controller of your working time</description>
 </project>
