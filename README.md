@@ -9,4 +9,6 @@
 4. change something in project and see how your time is running
 
 ### Preview
-![prototype](screenshots/prototype.png)
+![local 1](screenshots/local 1.png)
+![local 2](screenshots/local 2.png)
+![local 3](screenshots/local 3.png)
