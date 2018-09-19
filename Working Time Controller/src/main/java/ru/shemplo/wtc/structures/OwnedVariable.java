@@ -22,7 +22,7 @@ public class OwnedVariable <T> {
 	}
 	
 	public T readNotNull (T defaultValue) {
-	    return value == null ? defaultValue : value;
+	    return (value == null) ? defaultValue : value;
 	}
 	
 	public void write (T value, Object owner) {

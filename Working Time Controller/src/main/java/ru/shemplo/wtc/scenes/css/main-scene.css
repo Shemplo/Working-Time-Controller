@@ -1,0 +1,39 @@
+
+HBox {
+	-fx-padding: 10 0 0 0;
+}
+
+Label {
+	-fx-font-size: 12;
+	
+	-fx-wrap-text: true;
+	-fx-max-width: 300;
+	-fx-min-width: 80;
+}
+
+.title {
+	-fx-font-weight: bold;
+	-fx-font-size: 20;
+}
+
+#time_sl {
+	-fx-font-weight: bold;
+	-fx-font-size: 24;
+}
+
+Button {
+	-fx-padding: 5px 10px;
+	
+	-fx-background-color: none;
+	-fx-background-radius: 0;
+	
+	-fx-text-fill: gray;
+}
+
+Button:hover {
+	-fx-cursor: hand;
+	
+	-fx-background-color: rgb(255,100,100);
+	
+	-fx-text-fill: white;
+}

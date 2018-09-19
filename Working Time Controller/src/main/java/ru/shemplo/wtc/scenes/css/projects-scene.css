@@ -1,0 +1,30 @@
+
+HBox {
+	-fx-padding: 10 0 0 0;
+}
+
+Label {
+	-fx-font-size: 12;
+	
+	-fx-wrap-text: true;
+	-fx-max-width: 300;
+	-fx-min-width: 100;
+}
+
+.half_title {
+	-fx-font-weight: bold;
+	-fx-font-size: 16;
+}
+
+.title {
+	-fx-font-weight: bold;
+	-fx-font-size: 20;
+}
+
+TextField {
+	-fx-min-width: 300;
+}
+
+.error {
+	-fx-text-fill: red;
+}
