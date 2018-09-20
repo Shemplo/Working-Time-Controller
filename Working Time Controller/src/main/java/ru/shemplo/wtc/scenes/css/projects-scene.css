@@ -21,10 +21,26 @@ Label {
 	-fx-font-size: 20;
 }
 
+GridPane {
+	-fx-padding: 10 0 0 0;
+}
+
 TextField {
-	-fx-min-width: 300;
+	-fx-min-width: 325;
 }
 
 .error {
 	-fx-text-fill: red;
+}
+
+.warn_button:hover {
+	-fx-cursor: hand;
+	
+	-fx-background-color: 
+		rgba(225,100,100,1), 
+		linear-gradient(rgba(255,150,150,1), rgba(255,100,100,1));
+	-fx-background-insets: 0, 1;
+	-fx-background-radius: 3;
+	
+	-fx-text-fill: white;
 }

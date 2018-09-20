@@ -1,5 +1,6 @@
 package ru.shemplo.wtc.scenes;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +15,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import ru.shemplo.wtc.Run;
 import ru.shemplo.wtc.logic.ProjectDescriptor;
@@ -28,7 +30,6 @@ public class ProjectsScene extends StackPane {
     	
         setPadding (new Insets (5, 10, 5, 10));
         setBackground (Run.LIGHT_GRAY_BG);
-        setBorder (Run.DEFAULT_BORDERS);
 	}
 	
 	public static enum SCB /* Scene Choice Boxes */ {
@@ -49,7 +50,7 @@ public class ProjectsScene extends StackPane {
 	
 	public static enum SB /* Scene Buttons */ {
     	
-    	OPEN, CREATE
+    	REMOVE, OPEN, BROWSE, CREATE
     	;
     	
 		public final String TYPE = this.getClass ()
@@ -79,7 +80,7 @@ public class ProjectsScene extends StackPane {
 	
 	public static enum SL /* Scene Labels */ {
     	
-    	ERROR
+    	OPEN_ERROR, CREATE_ERROR
     	;
     	
 		public final String TYPE = this.getClass ()
@@ -93,6 +94,12 @@ public class ProjectsScene extends StackPane {
     }
 	
 	private int selectedIndex = 0;
+	
+	private static final DirectoryChooser DIR_CHOOSER = new DirectoryChooser ();
+	static {
+		DIR_CHOOSER.setTitle ("Choose project directory");
+		DIR_CHOOSER.setInitialDirectory (new File ("/"));
+	}
 	
 	public void init (final Stage stage) {
 		ChoiceBox <String> projects = SCB.PROJECTS.get (this);
@@ -124,29 +131,44 @@ public class ProjectsScene extends StackPane {
 			stage.close ();
 		});
 		
+		Button browse = SB.BROWSE.get (this), create = SB.CREATE.get (this);
 		TextField name = STF.NAME.get (this), path = STF.PATH.get (this);
-		Button create = SB.CREATE.get (this);
-		Label error = SL.ERROR.get (this);
+		Label createError = SL.CREATE_ERROR.get (this);
+		
+		path.textProperty ().addListener ((ov, v, newValue) -> {
+			int index = newValue.lastIndexOf (File.separatorChar);
+			newValue = newValue.substring (index + 1);
+			
+			name.setText (newValue);
+		});
+		
+		browse.setOnAction (ae -> {
+			File dir = DIR_CHOOSER.showDialog (stage);
+			if (dir == null) { return; }
+			
+			String directoryPath = dir.getAbsolutePath ();
+			path.setText (directoryPath);
+		});
 		
 		create.setOnAction (ae -> {
 			String nameValue = name.getText (), 
 				   pathValue = path.getText ();
 			if (nameValue.length () == 0) {
-				error.setText ("Name of project can't be empty");
+				createError.setText ("Name of project can't be empty");
 				return;
 			} else if (pathValue.length () == 0) {
-				error.setText ("Path to directory of project can't be empty");
+				createError.setText ("Path to directory of project can't be empty");
 				return;
 			}
 			
 			try {
 				Path testPath = Paths.get (pathValue);
 				if (!Files.exists (testPath)) {
-					error.setText ("Given path to directory of project doesn't exist");
+					createError.setText ("Given path to directory of project doesn't exist");
 					return;
 				}
 			} catch (Exception e) {
-				error.setText ("(Exception)" + e.toString ());
+				createError.setText ("(Exception)" + e.toString ());
 				return;
 			}
 			
@@ -157,10 +179,10 @@ public class ProjectsScene extends StackPane {
 			Integer identifier = MANAGER.bindProject (descriptor);
 			if (identifier != null) {
 				MANAGER.openProject (identifier);
-				error.setText ("");
+				createError.setText ("");
 				stage.close ();
 			} else {
-				error.setText ("Unknown error in ProjectsManager");
+				createError.setText ("Unknown error in ProjectsManager");
 			}
 		});
 	}
