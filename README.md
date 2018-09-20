@@ -3,10 +3,12 @@
 
 ### How to use it
 
+1. add `dependencies` to maven with 
+`mvn istall:install-file -Dfile=<path> -DgroupId=ru.shemplo -DartifactId=dsau -Dversion=1.0.0 -Dpackaging=jar -DgeneratePom=true` 
 1. build project with `mvn clean package`
-2. run built `jar` file in `target` directory (`java -jar wtc-[version].jar`)
-3. click on `Project name` and in opened window define path to the project directory
-4. change something in project and see how your time is running
+1. run built `jar` file in `target` directory (`java -jar wtc-[version].jar`)
+1. click on `Project name` and in opened window define path to the project directory
+1. change something in project and see how your time is running
 
 ### Preview
 
