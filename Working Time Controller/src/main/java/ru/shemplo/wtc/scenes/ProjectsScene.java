@@ -4,9 +4,12 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -93,6 +96,7 @@ public class ProjectsScene extends StackPane {
     	
     }
 	
+	private List <ProjectDescriptor> descriptors = new ArrayList <> ();
 	private int selectedIndex = 0;
 	
 	private static final DirectoryChooser DIR_CHOOSER = new DirectoryChooser ();
@@ -102,33 +106,35 @@ public class ProjectsScene extends StackPane {
 	}
 	
 	public void init (final Stage stage) {
+		Button open = SB.OPEN.get (this), remove = SB.REMOVE.get (this);
 		ChoiceBox <String> projects = SCB.PROJECTS.get (this);
-		Button open = SB.OPEN.get (this);
-		
-		List <ProjectDescriptor> descriptors = MANAGER.listOfProjects ();
-		List <String> list = descriptors.stream ()
-								.map (pd -> pd.NAME.read () + " - " + pd.PATH.read ())
-								.collect (Collectors.toList ());
-		projects.setItems (FXCollections.observableArrayList (list));
-		projects.getSelectionModel ().select (0);
-		
-		if (list.size () == 0) { 
-			projects.setDisable (true);
-			open.setDisable (true);
-		}
+		updateChoiceBox ();
 		
 		projects.getSelectionModel ()
 				.selectedIndexProperty ().addListener ((ov, v, nv) -> {
 			selectedIndex = ov.getValue ().intValue ();
 		});
 		
-		open.setOnAction (ae -> {
+		remove.setOnAction (ae -> {
 			if (selectedIndex != -1) {
 				ProjectDescriptor project = descriptors.get (selectedIndex);
-				MANAGER.openProject (project.IDENTIFIER.read ());
+				MANAGER.unbindProject (project.IDENTIFIER.read ());
 			}
 			
-			stage.close ();
+			updateChoiceBox ();
+		});
+		
+		open.setOnAction (ae -> {
+			Platform.runLater (() -> {
+				setDisable (true);
+				if (selectedIndex != -1) {
+					ProjectDescriptor project = descriptors.get (selectedIndex);
+					MANAGER.openProject (project.IDENTIFIER.read ());
+				}
+				
+				stage.close ();
+				setDisable (false);
+			});
 		});
 		
 		Button browse = SB.BROWSE.get (this), create = SB.CREATE.get (this);
@@ -185,6 +191,25 @@ public class ProjectsScene extends StackPane {
 				createError.setText ("Unknown error in ProjectsManager");
 			}
 		});
+	}
+	
+	private void updateChoiceBox () {
+		ChoiceBox <String> projects = SCB.PROJECTS.get (this);
+		Button open = SB.OPEN.get (this);
+		
+		Function <ProjectDescriptor, String> toString = 
+			pd -> pd.NAME.read () + " - " + pd.PATH.read ();
+		
+		descriptors = MANAGER.listOfProjects ();
+		List <String> list = descriptors.stream ().map (toString)
+								.collect (Collectors.toList ());
+		projects.setItems (FXCollections.observableArrayList (list));
+		projects.getSelectionModel ().select (0);
+		
+		if (list.size () == 0) { 
+			projects.setDisable (true);
+			open.setDisable (true);
+		}
 	}
 	
 }

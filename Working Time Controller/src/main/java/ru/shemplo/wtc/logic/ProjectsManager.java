@@ -80,17 +80,27 @@ public class ProjectsManager {
 				}
 				
 				StringTokenizer st = new StringTokenizer (line);
+				StringBuilder sb = new StringBuilder ();
 				switch (st.nextToken ().toLowerCase ()) {
 					case "name":
-						if (st.hasMoreTokens ()) {
-							current.NAME.write (st.nextToken (), this);
+						while (st.hasMoreTokens ()) {
+							sb.append (st.nextToken ());
+							sb.append (" ");
 						}
+						String name = sb.toString ().trim ();
+						current.NAME.write (name, this);
 						break;
+						
 					case "path":
-						if (st.hasMoreTokens ()) {
-							current.PATH.write (st.nextToken (), this);
+						while (st.hasMoreTokens ()) {
+							sb.append (st.nextToken ());
+							sb.append (" ");
 						}
+						
+						String path = sb.toString ().trim ();
+						current.PATH.write (path, this);
 						break;
+						
 					case "time":
 						if (st.hasMoreTokens ()) {
 							Long tmpTime = Long.parseLong (st.nextToken ());
@@ -147,6 +157,14 @@ public class ProjectsManager {
 		}
 		
 		return null;
+	}
+	
+	public void unbindProject (int identifier) {
+		ProjectDescriptor descriptor = PROJECTS.get (identifier);
+		if (descriptor == currentProject) { closeProject (); }
+		
+		PROJECTS.remove (identifier, descriptor);
+		PATHS.remove (descriptor.PATH.read ());
 	}
 	
 	public ProjectDescriptor getProject (Integer identifier) {
@@ -229,7 +247,9 @@ public class ProjectsManager {
 	
 	public void openProject (Integer identifier) {
 		ProjectDescriptor descriptor = getProject (identifier);
-		if (descriptor == null) { return; }
+		if (descriptor == null || descriptor == currentProject) { 
+			return; 
+		}
 		
 		closeProject (); // Closing current project
 		
@@ -238,7 +258,7 @@ public class ProjectsManager {
 		
 		try {
 			Path path = Paths.get (pathValue);
-			if (!Files.exists (path)) { return ;}
+			if (!Files.exists (path)) { return; }
 			
 			descriptor.buildStructure (watcher, path);
 			currentProject = descriptor;
