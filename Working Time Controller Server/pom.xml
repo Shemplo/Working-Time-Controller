@@ -5,10 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
   
   <groupId>ru.shemplo</groupId>
-  <artifactId>wtc</artifactId>
-  <version>1.0.3</version>
+  <artifactId>wtcs</artifactId>
+  <version>0.0.1</version>
   
-  <name>Working Time Controller</name>
+  <name>Working Time Controller Server</name>
   <url>https://github.com/Shemplo/Working-Time-Controller</url>
   <description>Simple controller of your working time</description>
   
@@ -33,7 +33,7 @@
                 <transformers>
                     <transformer
                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                        <mainClass>ru.shemplo.wtc.Run</mainClass>
+                        <mainClass>ru.shemplo.wtcs.Run</mainClass>
                     </transformer>
                 </transformers>
             </configuration>

@@ -5,4 +5,4 @@
  * @author Shemp
  *
  */
-package ru.shemplo.wtc.structures;
+package ru.shemplo.wtcs.network;

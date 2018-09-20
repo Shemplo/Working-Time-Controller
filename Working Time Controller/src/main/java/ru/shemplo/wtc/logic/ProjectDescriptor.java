@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import ru.shemplo.wtc.structures.OwnedVariable;
+import ru.shemplo.dsau.stuctures.OwnedVariable;
 
 public class ProjectDescriptor {
 	
