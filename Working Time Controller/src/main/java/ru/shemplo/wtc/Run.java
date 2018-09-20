@@ -37,7 +37,7 @@ public class Run extends Application {
     public static final String MAIN_SCENE_CSS     = "ru/shemplo/wtc/scenes/css/main-scene.css",
     						   PROJECTS_SCENE_CSS = "ru/shemplo/wtc/scenes/css/projects-scene.css";
         
-    public static final Border 
+    public static final Border
         DEFAULT_BORDERS = new Border (
             new BorderStroke (Color.GRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)
         );

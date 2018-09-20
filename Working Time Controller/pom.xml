@@ -3,24 +3,42 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
   <groupId>ru.shemplo</groupId>
   <artifactId>wtc</artifactId>
   <version>1.0.2</version>
+  
   <name>Working Time Controller</name>
+  <url>https://github.com/Shemplo/Working-Time-Controller</url>
+  <description>Simple controller of your working time</description>
+  
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
   
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
-        <configuration>
-          <includes>
-          	<include>*</include>
-          </includes>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+                <transformers>
+                    <transformer
+                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <mainClass>ru.shemplo.wtc.Run</mainClass>
+                    </transformer>
+                </transformers>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       
       <plugin>
@@ -32,7 +50,7 @@
 			<id>copy-dependencies</id>
 			<phase>package</phase>
 			<goals>
-				<goal>copy-dependencies</goal>
+			  <goal>copy-dependencies</goal>
 			</goals>
 			<configuration>
 			  <includeScope>runtime</includeScope>
@@ -45,12 +63,6 @@
   </build>
   
   <dependencies>
-    <dependency>
-	  <groupId>com.google.guava</groupId>
-	  <artifactId>guava</artifactId>
-	  <version>26.0-jre</version>
-	</dependency>
+  
   </dependencies>
-  <url>https://github.com/Shemplo/Working-Time-Controller</url>
-  <description>Simple controller of your working time</description>
 </project>

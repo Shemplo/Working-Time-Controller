@@ -9,6 +9,7 @@
 4. change something in project and see how your time is running
 
 ### Preview
-![local 1](screenshots/local1.png)
-![local 2](screenshots/local2.png)
-![local 3](screenshots/local3.png)
+
+| Project is not selected            | Project is not active              | Project is changed                |
+|:----------------------------------:|:----------------------------------:|:---------------------------------:|
+| ![local 1](screenshots/local1.png) | ![local 2](screenshots/local2.png) | ![local 3](screenshots/local3.png)|

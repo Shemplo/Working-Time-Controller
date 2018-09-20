@@ -31,7 +31,7 @@ public class ProjectsScene extends StackPane {
         setBorder (Run.DEFAULT_BORDERS);
 	}
 	
-	public enum SCB /* Scene Choice Boxes */ {
+	public static enum SCB /* Scene Choice Boxes */ {
 		
 		PROJECTS
 		;
@@ -47,7 +47,7 @@ public class ProjectsScene extends StackPane {
 		
 	}
 	
-	public enum SB /* Scene Buttons */ {
+	public static enum SB /* Scene Buttons */ {
     	
     	OPEN, CREATE
     	;
@@ -62,7 +62,7 @@ public class ProjectsScene extends StackPane {
     	
     }
 	
-	public enum STF /* Scene Text Fields */ {
+	public static enum STF /* Scene Text Fields */ {
     	
     	NAME, PATH
     	;
@@ -77,7 +77,7 @@ public class ProjectsScene extends StackPane {
     	
     }
 	
-	public enum SL /* Scene Labels */ {
+	public static enum SL /* Scene Labels */ {
     	
     	ERROR
     	;
@@ -90,7 +90,7 @@ public class ProjectsScene extends StackPane {
     		return (Label) context.lookup ("#" + id);
     	}
     	
-    } 
+    }
 	
 	private int selectedIndex = 0;
 	

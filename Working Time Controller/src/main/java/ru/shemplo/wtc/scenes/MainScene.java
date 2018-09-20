@@ -7,8 +7,6 @@ import java.net.URL;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.LocalAttribute;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
