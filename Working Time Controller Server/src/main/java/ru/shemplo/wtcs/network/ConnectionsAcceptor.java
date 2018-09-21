@@ -1,16 +1,17 @@
 package ru.shemplo.wtcs.network;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import ru.shemplo.dsau.stuctures.Pair;
 import ru.shemplo.dsau.utils.ByteManip;
@@ -18,10 +19,9 @@ import ru.shemplo.wtcs.Run;
 
 public class ConnectionsAcceptor implements AutoCloseable {
 
-	private final List <Thread> THREADS = new ArrayList <> ();
+	private final Map <String, Thread> THREADS = new HashMap <> ();
 	
 	private ServerSocket server = null;
-	private Thread thread = null;
 	
 	public final int PORT;
 	
@@ -137,30 +137,41 @@ public class ConnectionsAcceptor implements AutoCloseable {
 		}
 	};
 	
+	public NetworkConnection pollReady () {
+		return READY_CONNECTIONS.poll ();
+	}
+	
 	public void open () {
-		if (thread != null) { return; }
-		
-		thread = new Thread (ACCEPTOR_TASK, 
-			"Connections-Acceptor-Thread");
-		THREADS.add (thread);
-		thread.start ();
+		synchronized (THREADS) {
+			for (int i = 0; i < 1; i++) {
+				String name = "Connections-Acceptor-Thread-" + (i + 1);
+				Thread thread = new Thread (ACCEPTOR_TASK, name);
+				THREADS.putIfAbsent (name, thread);
+				thread.start ();
+			}
+		}
 	}
 
 	@Override
 	public void close () throws Exception {
-		for (Thread thread : THREADS) {
-			if (thread == null) { continue; }
-			thread.interrupt ();
-		}
-		
-		for (Thread thread : THREADS) {
-			if (thread == null) { continue; }
-			try {
-				thread.join (5000); // 5 seconds
-				System.out.println ("Thread " + thread.getName () + " closed");
-			} catch (InterruptedException ie) {
-				System.err.println ("Thread " + thread.getName () 
-					+ " is not closed: " + ie.getMessage ());
+		synchronized (THREADS) {
+			for (Thread thread : THREADS.values ()) {
+				if (thread == null) { continue; }
+				
+				thread.interrupt ();
+			}
+			
+			for (Thread thread : THREADS.values ()) {
+				if (thread == null) { continue; }
+				
+				try {
+					thread.join (5000); // 5 seconds
+					THREADS.remove (thread.getName ());
+					System.out.println ("Thread " + thread.getName () + " closed");
+				} catch (InterruptedException ie) {
+					System.err.println ("Thread " + thread.getName () 
+						+ " is not closed: " + ie.getMessage ());
+				}
 			}
 		}
 	}
