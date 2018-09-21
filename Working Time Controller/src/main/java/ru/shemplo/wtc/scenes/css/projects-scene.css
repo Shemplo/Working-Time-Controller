@@ -1,3 +1,6 @@
+ProjectsScene {
+	-fx-max-width: 300;
+}
 
 HBox {
 	-fx-padding: 10 0 0 0;
@@ -26,7 +29,7 @@ GridPane {
 }
 
 TextField {
-	-fx-min-width: 325;
+	-fx-min-width: 275;
 }
 
 .error {

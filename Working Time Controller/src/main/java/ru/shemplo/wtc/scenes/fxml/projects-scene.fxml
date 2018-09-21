@@ -62,7 +62,7 @@
 				GridPane.columnIndex="1"
 				GridPane.columnSpan="1" />
 			<Button 
-				text="Browse"
+				text="..."
 				fx:id="browse_sb"
 				GridPane.rowIndex="0"
 				GridPane.columnIndex="2" />
