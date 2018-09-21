@@ -20,19 +20,26 @@ Label {
 	-fx-font-size: 22;
 }
 
+.warn_button {
+	-fx-text-fill: gray;
+}
+
+.warn_button:hover {
+	-fx-background-color: rgb(255,100,100);
+	
+	-fx-text-fill: white;
+}
+
 Button {
 	-fx-padding: 5px 10px;
 	
-	-fx-background-color: none;
+	-fx-background-color: rgba(225,225,225,0.35);
+	-fx-background-insets: 0;
 	-fx-background-radius: 0;
-	
-	-fx-text-fill: gray;
 }
 
 Button:hover {
 	-fx-cursor: hand;
 	
-	-fx-background-color: rgb(255,100,100);
-	
-	-fx-text-fill: white;
+	-fx-background-color: rgb(225,225,225);
 }

@@ -2,10 +2,12 @@ package ru.shemplo.wtc.scenes;
 
 import static java.lang.ClassLoader.*;
 
+import java.util.Locale;
+
 import java.io.IOException;
+
 import java.net.URL;
 import java.time.temporal.ChronoUnit;
-import java.util.Locale;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -55,7 +57,7 @@ public class MainScene extends StackPane {
     
     public static enum SB /* Scene Buttons */ {
     	
-    	EXIT
+    	INFINITY, STOP, EXIT
     	;
     	
     	public final String TYPE = this.getClass ()
@@ -69,7 +71,23 @@ public class MainScene extends StackPane {
     }
     
     public void init () {
+    	Button inf = SB.INFINITY.get (this);
+    	inf.setFocusTraversable (false);
+    	inf.setOnAction (ae -> {
+    		boolean infinite = MANAGER.isInfinite ();
+    		if (infinite) {
+    			MANAGER.stopStopwatch ();
+    		} else {
+    			MANAGER.setInfinite ();
+    		}
+    	});
+    	
+    	Button stop = SB.STOP.get (this);
+    	stop.setFocusTraversable (false);
+    	stop.setOnAction (ae -> MANAGER.stopStopwatch ());
+    	
     	Button exit = SB.EXIT.get (this);
+    	exit.setFocusTraversable (false);
     	exit.setOnAction (ae -> {
     		try {
 				MANAGER.dumpProjects ();
@@ -131,10 +149,29 @@ public class MainScene extends StackPane {
     
     public void updateGUI () {
     	ProjectDescriptor project = MANAGER.getCurrentProject ();
-    	if (project == null) { return; }
-    	
     	final MainScene scene = this;
+    	
+    	if (project == null) {
+    		Platform.runLater (() -> {
+    			Button inf = SB.INFINITY.get (scene);
+        		inf.setVisible (false);
+        		
+        		Button stop = SB.STOP.get (scene);
+        		stop.setVisible (false);
+    		});
+    		
+    		return;
+    	}
+    	
     	Platform.runLater (() -> {
+    		boolean infinite = MANAGER.isInfinite ();
+    		Button inf = SB.INFINITY.get (scene);
+    		inf.setText (infinite ? "||" : ">");
+    		inf.setVisible (true);
+    		
+    		Button stop = SB.STOP.get (scene);
+    		stop.setVisible (true);
+    		
     		Label name = SL.NAME.get (scene);
     		name.setText (project.NAME.read ());
     		name.setTextFill (Color.BLACK);
@@ -143,12 +180,13 @@ public class MainScene extends StackPane {
     		path.setText (project.PATH.read ());
     		
     		long secondz = project.workingTime.get (ChronoUnit.SECONDS),
-               	 period  = project.workingPeriod.get (),
                	 seconds = secondz % 60,
                	 minutes = (secondz = secondz / 60) % 60,
                	 hours   = (secondz = secondz / 60);
-    		String format = String.format (Locale.ENGLISH, "%02d:%02d:%02d (%02.01fs)", 
-    										hours, minutes, seconds, period / 1000.0);
+    		double period = project.workingPeriod.get () / 1000.0;
+    		period = infinite ? Double.POSITIVE_INFINITY : period;
+    		String format = String.format (Locale.ENGLISH, "%02d:%02d:%02d", 
+    										hours, minutes, seconds);
     		Label time = SL.TIME.get (scene);
     		time.setTextFill (period > 0 ? Color.GREEN : Color.RED);
     		time.setText (format);

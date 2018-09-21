@@ -2,10 +2,18 @@ package ru.shemplo.wtc.logic;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -13,13 +21,8 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import ru.shemplo.wtc.Run;
 
@@ -232,8 +235,11 @@ public class ProjectsManager {
     	    	 delta = current - lastLoop;
     		    
     	    if (LAST_LOOP.compareAndSet (lastLoop, current)) {
-    	    	descriptor.workingPeriod.compareAndSet (period, Math.max (0, period - delta));
-        		if (descriptor.workingPeriod.get () > 0) {
+    	    	boolean infinite = isInfinite ();
+    	    	descriptor.workingPeriod.compareAndSet (
+    	    		period, Math.max (0, period - delta * (infinite ? 0 : 1)));
+    	    	
+        		if (descriptor.workingPeriod.get () > 0 || infinite) {
         			descriptor.workingTime = descriptor.workingTime
         										.plusMillis (delta);
         		}
@@ -284,6 +290,27 @@ public class ProjectsManager {
 	
 	public ProjectDescriptor getCurrentProject () {
 		return currentProject;
+	}
+	
+	public void stopStopwatch () {
+		ProjectDescriptor descriptor = getCurrentProject ();
+		if (descriptor == null) { return; }
+		
+		descriptor.INFINITE.write (false, this);
+		descriptor.workingPeriod.set (0L);
+	}
+	
+	public void setInfinite () {
+		ProjectDescriptor descriptor = getCurrentProject ();
+		if (descriptor == null) { return; }
+		
+		descriptor.INFINITE.write (true, this);
+	}
+	
+	public boolean isInfinite () {
+		ProjectDescriptor descriptor = getCurrentProject ();
+		if (descriptor == null) { return false; }
+		return descriptor.INFINITE.read ();
 	}
 	
 	private void closeProject () {

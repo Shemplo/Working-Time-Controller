@@ -24,6 +24,7 @@ public class ProjectDescriptor {
 	private static final Object OWNER = new Object ();
 	
 	public OwnedVariable <Integer> IDENTIFIER;
+	public OwnedVariable <Boolean> INFINITE;
 	public OwnedVariable <String> NAME;
 	public OwnedVariable <String> PATH;
 	
@@ -35,6 +36,9 @@ public class ProjectDescriptor {
 		ProjectsManager manager = ProjectsManager.getInstance ();
 		this.IDENTIFIER = new OwnedVariable <> (OWNER, manager);
 		IDENTIFIER.write (00, OWNER);
+		
+		this.INFINITE = new OwnedVariable <> (OWNER, manager);
+		INFINITE.write (false, OWNER);
 		
 		this.NAME = new OwnedVariable <> (OWNER, manager);
 		NAME.write ("", OWNER);
