@@ -253,8 +253,13 @@ public class ProjectsManager {
 	
 	public boolean openProject (Integer identifier) {
 		ProjectDescriptor descriptor = getProject (identifier);
-		if (descriptor == null || descriptor == currentProject) { 
+		if (descriptor == null) { 
 			return false; 
+		}
+		
+		if (descriptor == currentProject) {
+			// Because project is already opened
+			return true;
 		}
 		
 		closeProject (); // Closing current project
