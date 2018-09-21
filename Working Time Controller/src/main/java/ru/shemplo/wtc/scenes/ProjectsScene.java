@@ -113,6 +113,8 @@ public class ProjectsScene extends StackPane {
 		projects.getSelectionModel ()
 				.selectedIndexProperty ().addListener ((ov, v, nv) -> {
 			selectedIndex = ov.getValue ().intValue ();
+			Label error = SL.OPEN_ERROR.get (this);
+			error.setText ("");
 		});
 		
 		remove.setOnAction (ae -> {
@@ -122,18 +124,25 @@ public class ProjectsScene extends StackPane {
 			}
 			
 			updateChoiceBox ();
+			stage.sizeToScene ();
 		});
 		
 		open.setOnAction (ae -> {
+			Label error = SL.OPEN_ERROR.get (this);
+			error.setText ("");
+			
 			Platform.runLater (() -> {
 				setDisable (true);
 				if (selectedIndex != -1) {
 					ProjectDescriptor project = descriptors.get (selectedIndex);
-					MANAGER.openProject (project.IDENTIFIER.read ());
+					if (!MANAGER.openProject (project.IDENTIFIER.read ())) {
+						String message = "Project directory not found or another error rised";
+						error.setText (message);
+						setDisable (false);
+					} else {
+						stage.close ();
+					}
 				}
-				
-				stage.close ();
-				setDisable (false);
 			});
 		});
 		

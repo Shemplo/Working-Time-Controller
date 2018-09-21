@@ -251,10 +251,10 @@ public class ProjectsManager {
     	}
     };
 	
-	public void openProject (Integer identifier) {
+	public boolean openProject (Integer identifier) {
 		ProjectDescriptor descriptor = getProject (identifier);
 		if (descriptor == null || descriptor == currentProject) { 
-			return; 
+			return false; 
 		}
 		
 		closeProject (); // Closing current project
@@ -264,7 +264,7 @@ public class ProjectsManager {
 		
 		try {
 			Path path = Paths.get (pathValue);
-			if (!Files.exists (path)) { return; }
+			if (!Files.exists (path)) { return false; }
 			
 			descriptor.buildStructure (watcher, path);
 			currentProject = descriptor;
@@ -283,9 +283,11 @@ public class ProjectsManager {
 		} catch (IOException ioe) {
 			descriptor.dropStructure ();
 			System.err.println (ioe);
+			return false;
 		}
 		
 		//System.out.println ("Project opened");
+		return true;
 	}
 	
 	public ProjectDescriptor getCurrentProject () {

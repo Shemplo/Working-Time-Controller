@@ -166,8 +166,8 @@ public class MainScene extends StackPane {
     	Platform.runLater (() -> {
     		boolean infinite = MANAGER.isInfinite ();
     		Button inf = SB.INFINITY.get (scene);
-    		inf.setText (infinite ? "||" : ">");
-    		inf.setVisible (true);
+    		inf.setText (infinite ? "." : ">");
+    		inf.setVisible (!infinite);
     		
     		Button stop = SB.STOP.get (scene);
     		stop.setVisible (true);

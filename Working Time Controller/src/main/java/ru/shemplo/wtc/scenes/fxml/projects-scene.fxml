@@ -30,7 +30,11 @@
 			<Button
 				text="Remove"
 				styleClass="warn_button"
-				fx:id="remove_sb" />
+				fx:id="remove_sb">
+				<HBox.margin>
+					<Insets left="5" />
+				</HBox.margin>
+			</Button>
 			<Button 
 				text="Open" 
 				fx:id="open_sb">
