@@ -39,7 +39,7 @@
 				text="Open" 
 				fx:id="open_sb">
 				<HBox.margin>
-					<Insets left="5" />
+					<Insets left="10" />
 				</HBox.margin>
 			</Button>
 			<VBox.margin>

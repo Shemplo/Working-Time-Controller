@@ -20,14 +20,8 @@ Label {
 	-fx-font-size: 22;
 }
 
-.warn_button {
-	-fx-text-fill: gray;
-}
-
-.warn_button:hover {
-	-fx-background-color: rgb(255,100,100);
-	
-	-fx-text-fill: white;
+#menu_sgp {
+	-fx-background-color: rgba(245, 245, 245, 0.9);
 }
 
 Button {
@@ -36,10 +30,22 @@ Button {
 	-fx-background-color: rgba(225,225,225,0.35);
 	-fx-background-insets: 0;
 	-fx-background-radius: 0;
+	
+	-fx-font-weight: bold;
 }
 
 Button:hover {
 	-fx-cursor: hand;
 	
 	-fx-background-color: rgb(225,225,225);
+}
+
+.warn_button {
+	-fx-text-fill: gray;
+}
+
+.warn_button:hover {
+	-fx-background-color: rgb(255,100,100);
+	
+	-fx-text-fill: white;
 }

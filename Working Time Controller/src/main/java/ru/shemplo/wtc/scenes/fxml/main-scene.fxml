@@ -40,24 +40,35 @@
 		</HBox>
 	</VBox>
 	
+	<Button
+		fx:id="open_menu_sb"
+		text="≡" />
+	
 	<GridPane
-		maxWidth="75" maxHeight="75"
 		alignment="TOP_RIGHT"
-		hgap="1.5" vgap="1.5">
-		<Button 
+		hgap="5" vgap="2.5"
+		visible="true"
+		fx:id="menu_sgp">
+		<Button
+			GridPane.halignment="CENTER"
 			GridPane.rowIndex="0"
-			GridPane.columnIndex="1"
+			GridPane.columnIndex="0"
+			GridPane.columnSpan="1"
 			styleClass="warn_button"
 			fx:id="exit_sb"
-			text="❌" />
-			
+			text="X" />
 		<Button
-			GridPane.rowIndex="1"
+			GridPane.rowIndex="0"
+			GridPane.columnIndex="1"
+			fx:id="close_menu_sb"
+			text="≡" />
+		<Button
+			GridPane.rowIndex="2"
 			GridPane.columnIndex="0"
 			fx:id="infinity_sb"
 			text="&gt;" />
 		<Button
-			GridPane.rowIndex="1"
+			GridPane.rowIndex="2"
 			GridPane.columnIndex="1"
 			fx:id="stop_sb"
 			text="■" />

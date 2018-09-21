@@ -19,6 +19,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -57,7 +58,7 @@ public class MainScene extends StackPane {
     
     public static enum SB /* Scene Buttons */ {
     	
-    	INFINITY, STOP, EXIT
+    	OPEN_MENU, CLOSE_MENU, INFINITY, STOP, EXIT
     	;
     	
     	public final String TYPE = this.getClass ()
@@ -70,7 +71,33 @@ public class MainScene extends StackPane {
     	
     }
     
+    public static enum SGP /* Scene Grid Panes */ {
+    	
+    	MENU
+    	;
+    	
+    	public final String TYPE = this.getClass ()
+    				.getSimpleName ().toLowerCase ();
+    	
+    	public GridPane get (Parent context) {
+    		String id = name ().toLowerCase () + "_" + TYPE;
+    		return (GridPane) context.lookup ("#" + id);
+    	}
+    	
+    }
+    
     public void init () {
+    	GridPane menu = SGP.MENU.get (this);
+    	menu.setVisible (false);
+    	
+    	Button openMenu = SB.OPEN_MENU.get (this),
+    		   closeMenu = SB.CLOSE_MENU.get (this);
+    	closeMenu.setFocusTraversable (false);
+    	openMenu.setFocusTraversable (false);
+    	
+    	closeMenu.setOnAction (ae -> menu.setVisible (false));
+    	openMenu.setOnAction (ae -> menu.setVisible (true));
+    	
     	Button inf = SB.INFINITY.get (this);
     	inf.setFocusTraversable (false);
     	inf.setOnAction (ae -> {
