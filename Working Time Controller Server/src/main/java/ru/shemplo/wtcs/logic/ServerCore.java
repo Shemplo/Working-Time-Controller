@@ -72,9 +72,7 @@ public class ServerCore implements AutoCloseable {
 				
 				NetworkConnection prev = CLIENTS.put (identifier, connection);
 				if (prev != null) { // Unlucky previous connection
-					try {
-						prev.close ();
-					} catch (Exception e) {}
+					try { prev.close (); } catch (Exception e) {}
 				}
 			}
 			
@@ -123,6 +121,7 @@ public class ServerCore implements AutoCloseable {
 
 	@Override
 	public void close () throws Exception {
+		// Server is stopping -> no input connections
 		acceptor.close ();
 		
 		synchronized (THREADS) {
@@ -144,6 +143,10 @@ public class ServerCore implements AutoCloseable {
 						+ " is not closed: " + ie.getMessage ());
 				}
 			}
+		}
+		
+		for (NetworkConnection connection : CLIENTS.values ()) {
+			connection.close ();
 		}
 	}
 	

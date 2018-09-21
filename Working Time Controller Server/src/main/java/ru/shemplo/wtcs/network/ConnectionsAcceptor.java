@@ -124,6 +124,12 @@ public class ConnectionsAcceptor implements AutoCloseable {
 					// Handshake failed -> dropping connection
 					
 					try {
+						OutputStream os = entry.F.getOutputStream ();
+						os.write (ByteManip.I2B (-1));
+						os.flush ();
+					} catch (IOException ioee) {}
+					
+					try {
 						entry.F.close ();
 					} catch (Exception e) {}
 					
@@ -173,6 +179,21 @@ public class ConnectionsAcceptor implements AutoCloseable {
 						+ " is not closed: " + ie.getMessage ());
 				}
 			}
+		}
+		
+		for (NetworkConnection connection : READY_CONNECTIONS) {
+			connection.close ();
+		}
+		
+		for (Pair <Socket, Long> pair : PENDING_SOCKETS) {
+			try {
+				OutputStream os = pair.F.getOutputStream ();
+				os.write (ByteManip.I2B (-1));
+				os.flush ();
+			} catch (IOException ioe) {}
+			
+			
+			pair.F.close ();
 		}
 	}
 	

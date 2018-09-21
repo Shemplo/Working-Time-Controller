@@ -1,5 +1,6 @@
 package ru.shemplo.wtcs.network;
 
+import java.io.IOException;
 
 public interface NetworkConnection extends AutoCloseable {
 	
@@ -13,6 +14,8 @@ public interface NetworkConnection extends AutoCloseable {
 	
 	public void update ();
 	
-	public void write (String message);
+	public void write (byte [] data) throws IOException;
+	
+	public void write (String message) throws IOException;
 	
 }

@@ -1,6 +1,7 @@
 package ru.shemplo.wtcs;
 
-import java.time.Duration;
+import static java.time.Duration.*;
+
 import java.util.Random;
 
 import ru.shemplo.wtcs.logic.ServerCore;
@@ -10,7 +11,8 @@ public class Run {
 	
 	public static final Random R = new Random ();
 	
-	public static final long HANDSHAKE_TIMEOUT = Duration.ofSeconds (10).toMillis ();
+	public static final long HANDSHAKE_TIMEOUT         = ofSeconds (10).toMillis (),
+							 CONNECTION_UPDATE_TIMEOUT = ofMillis (50).toMillis ();
 	
 	private static ConnectionsAcceptor acceptor;
 	private static ServerCore core;
