@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -49,6 +50,7 @@ public class ConnectionsAcceptor implements AutoCloseable {
 				
 				if (socket != null) {
 					PENDING_SOCKETS.add (Pair.mp (socket, null));
+					System.out.println ("New connection accepted: " + socket);
 					continue; // It's important to accept all connections
 				}
 			} catch (SocketTimeoutException ste) {
@@ -101,7 +103,7 @@ public class ConnectionsAcceptor implements AutoCloseable {
 					if (is.available () < 8) {
 						if (overTime > Run.HANDSHAKE_TIMEOUT) {
 							// Time for handshake expired -> dropping connection
-							throw new SocketTimeoutException ();
+							throw new SocketTimeoutException ("Handshake not finished");
 						}
 						
 						PENDING_SOCKETS.add (entry);
@@ -114,14 +116,16 @@ public class ConnectionsAcceptor implements AutoCloseable {
 					
 					if ((answer ^ 0xff_ff_ff_ff_ff_ff_ff_ffL) != entry.S) {
 						// Handshake failed -> dropping connection
-						throw new IOException ("wrong handshake answer");
+						throw new IOException ("Wrong handshake answer");
 					}
 					
 					int id = ID_COUNTER.getAndIncrement ();
 					NetworkConnection connection = new BaseNetConnection (id, entry.F);
+					System.out.println ("New client created: " + connection);
 					READY_CONNECTIONS.add (connection);
 				} catch (IOException ioe) {
 					// Handshake failed -> dropping connection
+					ioe.printStackTrace ();
 					
 					try {
 						OutputStream os = entry.F.getOutputStream ();
@@ -132,10 +136,6 @@ public class ConnectionsAcceptor implements AutoCloseable {
 					try {
 						entry.F.close ();
 					} catch (Exception e) {}
-					
-					if (is != null) {
-						try { is.close (); } catch (Exception e) {}
-					}
 					
 					continue;
 				}

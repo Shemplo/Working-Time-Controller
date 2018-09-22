@@ -28,7 +28,7 @@ Label {
 Button {
 	-fx-padding: 5px 10px;
 	
-	-fx-background-color: rgba(225,225,225,0.35);
+	-fx-background-color: rgba(175,175,175,0.35);
 	-fx-background-insets: 0;
 	-fx-background-radius: 0;
 	
@@ -38,7 +38,7 @@ Button {
 Button:hover {
 	-fx-cursor: hand;
 	
-	-fx-background-color: rgb(225,225,225);
+	-fx-background-color: rgb(155,155,155,0.75);
 }
 
 .warn_button {

@@ -53,7 +53,7 @@
 	
 	<GridPane
 		alignment="TOP_RIGHT"
-		hgap="5" vgap="2.5"
+		hgap="7.5" vgap="7.5"
 		visible="true"
 		fx:id="menu_sgp">
 		<Button
@@ -69,6 +69,16 @@
 			GridPane.columnIndex="1"
 			fx:id="close_menu_sb"
 			text="≡" />
+			
+		<Button
+			GridPane.halignment="RIGHT"
+			GridPane.hgrow="ALWAYS"
+			GridPane.rowIndex="1"
+			GridPane.columnIndex="0"
+			GridPane.columnSpan="2"
+			fx:id="connect_sb"
+			text="offline" /> 
+			
 		<Button
 			GridPane.rowIndex="2"
 			GridPane.columnIndex="0"
