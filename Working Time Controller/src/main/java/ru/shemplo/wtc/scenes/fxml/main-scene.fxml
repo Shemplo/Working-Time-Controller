@@ -14,7 +14,14 @@
 	xmlns:fx="http://javafx.com/fxml/1"
 	alignment="TOP_RIGHT">
 	<VBox minWidth="300">
-		<Label styleClass="title" text="TITLE" fx:id="title_sl" />
+		<Label 
+			styleClass="title" 
+			text="TITLE" 
+			fx:id="title_sl">
+			<VBox.margin>
+				<Insets right="50" />
+			</VBox.margin>
+		</Label>
 		
 		<HBox>
 			<Label 

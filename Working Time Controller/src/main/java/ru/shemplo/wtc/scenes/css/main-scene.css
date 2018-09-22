@@ -21,7 +21,8 @@ Label {
 }
 
 #menu_sgp {
-	-fx-background-color: rgba(245, 245, 245, 0.9);
+	-fx-background-color: 
+		linear-gradient(to right, rgba(245, 245, 245, 0.25), rgba(245, 245, 245, 1.0));
 }
 
 Button {
