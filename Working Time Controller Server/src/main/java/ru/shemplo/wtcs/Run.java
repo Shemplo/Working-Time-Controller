@@ -12,17 +12,20 @@ public class Run {
 	public static final Random R = new Random ();
 	
 	public static final long HANDSHAKE_TIMEOUT         = ofSeconds (10).toMillis (),
-							 CONNECTION_UPDATE_TIMEOUT = ofMillis (50).toMillis ();
+							 CONNECTION_UPDATE_TIMEOUT = ofMillis (50).toMillis (),
+							 CONNECTION_TEST_TIMEOUT   = ofSeconds (10).toMillis ();
 	
 	private static ConnectionsAcceptor acceptor;
 	private static ServerCore core;
 	
 	public static void main (String ... args) throws Exception {
-		acceptor = new ConnectionsAcceptor (3045);
+		acceptor = new ConnectionsAcceptor (3046);
 		acceptor.open ();
 		
 		core = new ServerCore (acceptor);
 		core.start ();
+		
+		System.out.println ("Server started");
 	}
 	
 	public static void close () {

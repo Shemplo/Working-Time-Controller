@@ -1,7 +1,5 @@
 package ru.shemplo.wtcs.logic;
 
-import static java.nio.charset.StandardCharsets.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,14 +10,17 @@ public class BaseMessageReader implements MessageReader {
 	private final byte [] SIZE_BUFFER = new byte [4];
 	
 	@Override
-	public String read (InputStream is) throws IOException  {
-		if (is.available () < 4) { return ""; }
+	public byte [] read (InputStream is) throws IOException  {
+		if (is.available () < 4) { return new byte [0]; }
 		
 		is.read (SIZE_BUFFER, 0, SIZE_BUFFER.length);
 		int length = ByteManip.B2I (SIZE_BUFFER);
+		System.out.println ("Length: " + length);
 		
 		byte [] buffer = new byte [length];
-		return new String (buffer, 0, buffer.length, UTF_8);
+		is.read (buffer, 0, buffer.length);
+		
+		return buffer;
 	}
 	
 }

@@ -1,7 +1,5 @@
 package ru.shemplo.wtcs.logic;
 
-import static java.nio.charset.StandardCharsets.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.IOException;
 
-import ru.shemplo.wtcs.Run;
+import ru.shemplo.wtcs.logic.handlers.BaseCommandsHandler;
 import ru.shemplo.wtcs.network.ConnectionsAcceptor;
 import ru.shemplo.wtcs.network.NetworkConnection;
 
@@ -54,15 +52,17 @@ public class ServerCore implements AutoCloseable {
 					try {
 						connection.close ();
 					} catch (Exception e) {}
-					
 					CLIENTS.remove (key);
+					
+					System.out.println ("Remove dead connection: " + connection);
 					continue;
 				}
 				
-				String input = null;
+				connection.update ();
+				byte [] input = null;
+				
 				while ((input = connection.pollInput ()) != null) {
-					// TODO: send to commands processor
-					System.out.println (input);
+					BaseCommandsHandler.handle (input, connection);
 				}
 			}
 			
@@ -78,19 +78,13 @@ public class ServerCore implements AutoCloseable {
 			
 			try {
 				if (IS_CONSOLE_FREE.compareAndSet (true, false)) {
-					if (System.in.available () > 0) {
-						byte [] buffer = new byte [System.in.available ()];
-						System.in.read (buffer, 0, buffer.length);
+					int available = System.in.available ();
+					if (available > 0) {
+						byte [] buffer = new byte [available + 1];
+						System.in.read (buffer, 1, available);
+						buffer [0] = 1;
 						
-						String input = new String (buffer, 0, buffer.length, UTF_8);
-						input = input.trim ();
-						
-						// TODO: send to commands processor
-						System.out.println (input);
-						
-						if (input.equals ("stop")) {
-							Run.close ();
-						}
+						BaseCommandsHandler.handle (buffer, null);
 					}
 					
 					IS_CONSOLE_FREE.set (true);
