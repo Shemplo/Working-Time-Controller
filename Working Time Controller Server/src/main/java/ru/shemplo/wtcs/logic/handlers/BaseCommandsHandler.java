@@ -23,10 +23,45 @@ public class BaseCommandsHandler {
 			
 			System.out.println (command);
 			
-			switch (st.nextToken ()) {
+			String word = st.nextToken ().trim ()
+							.toLowerCase ();
+			switch (word) {
 				case "stop":
 					Run.close ();
 					break;
+					
+				case "project": {
+					String login = "";
+					if (st.hasMoreTokens ()) {
+						login = st.nextToken ();
+					} else { break; }
+					
+					long time = 0;
+					if (st.hasMoreTokens ()) {
+						time = Long.parseLong (st.nextToken ());
+					} else { break; }
+					
+					@SuppressWarnings ("unused")
+					int active = 0;
+					if (st.hasMoreTokens ()) {
+						active = Integer.parseInt (st.nextToken ());
+					} else { break; }
+					
+					String project = "";
+					if (st.hasMoreTokens ()) {
+						StringBuilder sb = new StringBuilder ();
+						while (st.hasMoreTokens ()) {
+							sb.append (st.nextToken ());
+							sb.append (" ");
+						}
+						
+						project = sb.toString ().trim ();
+					} else { break; }
+					
+					System.out.println ("Updating project " + project);
+					Run.MANAGER.updateProject (login, project, time);
+				}
+				break;
 					
 				default: {
 					try {

@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.IOException;
 
+import ru.shemplo.dsau.utils.TimeoutEvent;
+import ru.shemplo.wtcs.Run;
 import ru.shemplo.wtcs.logic.handlers.BaseCommandsHandler;
 import ru.shemplo.wtcs.network.ConnectionsAcceptor;
 import ru.shemplo.wtcs.network.NetworkConnection;
@@ -36,6 +38,8 @@ public class ServerCore implements AutoCloseable {
 	}
 	
 	private final AtomicBoolean IS_CONSOLE_FREE = new AtomicBoolean (true);
+	private final TimeoutEvent DUMP_EVENT = 
+					new TimeoutEvent (60_000, Run.MANAGER::dumpProjects);
 	
 	private final Runnable CORE_TASK = () -> {
 		long start = 0, delta = 0;
@@ -90,6 +94,10 @@ public class ServerCore implements AutoCloseable {
 					IS_CONSOLE_FREE.set (true);
 				}
 			} catch (IOException ioe) { continue; }
+			
+			//////////////////////////
+			DUMP_EVENT.update (delta);
+			//////////////////////////
 			
 			delta = (System.nanoTime () - start) / 1_000_000;
 			if (delta < 50) { // 50 milliseconds timeout

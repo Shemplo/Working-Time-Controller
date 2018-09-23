@@ -4,6 +4,7 @@ import static java.time.Duration.*;
 
 import java.util.Random;
 
+import ru.shemplo.wtcs.logic.ProjectsManager;
 import ru.shemplo.wtcs.logic.ServerCore;
 import ru.shemplo.wtcs.network.ConnectionsAcceptor;
 
@@ -18,8 +19,12 @@ public class Run {
 	private static ConnectionsAcceptor acceptor;
 	private static ServerCore core;
 	
+	public static final ProjectsManager MANAGER = ProjectsManager.getInstance ();
+	
 	public static void main (String ... args) throws Exception {
-		acceptor = new ConnectionsAcceptor (3046);
+		MANAGER.loadProjects ();
+		
+		acceptor = new ConnectionsAcceptor (163);
 		acceptor.open ();
 		
 		core = new ServerCore (acceptor);
@@ -30,6 +35,7 @@ public class Run {
 	
 	public static void close () {
 		Thread closer = new Thread (() -> {
+			MANAGER.dumpProjects ();
 			try { core.close (); } 
 			catch (Exception e) { e.printStackTrace (); }
 		}, "Closing-Thread");
