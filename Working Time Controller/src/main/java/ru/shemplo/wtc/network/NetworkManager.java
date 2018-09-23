@@ -2,6 +2,8 @@ package ru.shemplo.wtc.network;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,6 +47,8 @@ public class NetworkManager implements AutoCloseable {
 	private int port;
 	
 	private Socket socket;
+	
+	private final Queue <byte []> OUTPUT_QUEUE = new ConcurrentLinkedQueue <> ();
 	
 	private final Runnable NETWORK_TASK = () -> {
 		long start = 0, delta = 0;
@@ -117,7 +121,7 @@ public class NetworkManager implements AutoCloseable {
 					if (INPUT.compareAndSet (true, false)) {
 						try {
 							InputStream is = socket.getInputStream ();
-							if (is.available () >= 4) {
+							while (is.available () >= 4) {
 								byte [] sizeBuffer = new byte [4];
 								
 								is.read (sizeBuffer, 0, sizeBuffer.length);
@@ -125,17 +129,22 @@ public class NetworkManager implements AutoCloseable {
 								
 								if (length == -1) {
 									throw new IOException ("Server closed connection");
+								} else if (length == -2) {
+									System.out.println ("Test of ping");
+								} else {
+									byte [] buffer = new byte [length];
+									length = is.read (buffer, 0, length);
+									
+									String input = new String (buffer, 0, length, StandardCharsets.UTF_8);
+									System.out.println (input);
 								}
-								
-								byte [] buffer = new byte [length];
-								length = is.read (buffer, 0, length);
-								
-								String input = new String (buffer, 0, length, StandardCharsets.UTF_8);
-								System.out.println (input);
 							}
 						} catch (IOException ioe) {
 							STATE.compareAndSet (state, State.NOT_CONNECTED);
 							try { socket.close (); } catch (Exception e) {}
+							
+							INPUT.set (true);
+							continue;
 						}
 						
 						INPUT.set (true);
@@ -143,8 +152,16 @@ public class NetworkManager implements AutoCloseable {
 					
 					if (OUTPUT.compareAndSet (true, false)) {
 						try {
-							@SuppressWarnings ("unused")
-							InputStream os = socket.getInputStream ();
+							OutputStream os = socket.getOutputStream ();
+							
+							byte [] output = null;
+							while ((output = OUTPUT_QUEUE.poll ()) != null) {
+								if (output.length == 0) { continue; }
+								
+								os.write (ByteManip.I2B (output.length));
+								os.write (output, 0, output.length);
+								os.flush ();
+							}
 						} catch (IOException ioe) {
 							STATE.compareAndSet (state, State.NOT_CONNECTED);
 							try { socket.close (); } catch (Exception e) {}
@@ -201,6 +218,27 @@ public class NetworkManager implements AutoCloseable {
 	
 	public boolean isConnected () {
 		return State.CONNECTED.equals (STATE.get ());
+	}
+	
+	public void write (byte [] data) {
+		if (data == null || data.length == 0) { return; }
+		byte [] buffer = new byte [data.length + 1];
+		
+		System.arraycopy (data, 0, buffer, 1, data.length);
+		buffer [0] = 0; // it means raw bytes
+		
+		OUTPUT_QUEUE.add (buffer);
+	}
+	
+	public void write (String message) {
+		if (message == null || message.length () == 0) { return; }
+		byte [] data = message.getBytes (StandardCharsets.UTF_8);
+		byte [] buffer = new byte [data.length + 1];
+		
+		System.arraycopy (data, 0, buffer, 1, data.length);
+		buffer [0] = 1; // it means string
+		
+		OUTPUT_QUEUE.add (buffer);
 	}
 
 	@Override

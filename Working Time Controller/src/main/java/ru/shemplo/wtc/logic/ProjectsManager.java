@@ -25,6 +25,7 @@ import java.nio.file.WatchService;
 import java.time.Duration;
 
 import ru.shemplo.wtc.Run;
+import ru.shemplo.wtc.network.NetworkManager;
 
 public class ProjectsManager {
 	
@@ -44,6 +45,7 @@ public class ProjectsManager {
 	
 	private final ConcurrentMap <Integer, ProjectDescriptor> PROJECTS = new ConcurrentHashMap <> ();
 	private final ConcurrentMap <String, Object> PATHS = new ConcurrentHashMap <> ();
+	private final NetworkManager NETWORK = NetworkManager.getInstance ();
 	
 	private static final Path getPath () throws IOException {
 		String homeAddress = System.getProperty ("user.home");
@@ -186,6 +188,8 @@ public class ProjectsManager {
     	ProjectDescriptor descriptor = currentProject;
     	if (descriptor == null) { return; }
     	
+    	// FIXME: possible that 2 threads will do the same for 1 event
+    	
     	while (true) {
     	    WatchKey key;
     	    try {
@@ -228,6 +232,8 @@ public class ProjectsManager {
     	ProjectDescriptor descriptor = currentProject;
     	if (descriptor == null) { return; }
     	
+    	long pingTimer = 0;
+    	
     	while (true) {
     	    long current  = System.currentTimeMillis (),
     	    	 lastLoop = LAST_LOOP.get ();
@@ -242,6 +248,13 @@ public class ProjectsManager {
         		if (descriptor.workingPeriod.get () > 0 || infinite) {
         			descriptor.workingTime = descriptor.workingTime
         										.plusMillis (delta);
+        		}
+        		
+        		pingTimer = Math.min (pingTimer + delta, 1000);
+        		if (pingTimer >= 1000 && NETWORK.isConnected ()) { // 1 second timeout
+        			System.out.println ("Sending message");
+        			NETWORK.write ("I'm active " + descriptor.workingTime.toMillis () + " already");
+        			pingTimer = 0;
         		}
     	    }
     	    

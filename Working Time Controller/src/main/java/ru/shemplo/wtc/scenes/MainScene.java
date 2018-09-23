@@ -103,10 +103,18 @@ public class MainScene extends StackPane {
     	
     	Button connect = SB.CONNECT.get (this);
     	connect.setOnMouseClicked (me -> {
-    		try {
-    			NETWORK.connect ("localhost", 3045, "shemplo");
-    		} catch (IOException ioe) {
-    			ioe.printStackTrace ();
+    		if (NETWORK.isConnected ()) {
+    			try {
+    				NETWORK.close ();
+    			} catch (Exception e) {
+    				e.printStackTrace ();
+    			}
+    		} else {
+    			try {
+        			NETWORK.connect ("localhost", 3046, "shemplo");
+        		} catch (IOException ioe) {
+        			ioe.printStackTrace ();
+        		}
     		}
     	});
     	
