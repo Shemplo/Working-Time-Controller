@@ -111,7 +111,7 @@ public class MainScene extends StackPane {
     			}
     		} else {
     			try {
-        			NETWORK.connect ("localhost", 3046, "shemplo");
+        			NETWORK.connect ("localhost", 163, "shemplo");
         		} catch (IOException ioe) {
         			ioe.printStackTrace ();
         		}

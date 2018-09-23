@@ -126,7 +126,7 @@ public class ProjectsManager {
 	
 	public void dumpProjects () throws IOException {
 		try (
-			BufferedWriter bw = Files.newBufferedWriter (getPath());
+			BufferedWriter bw = Files.newBufferedWriter (getPath ());
 			PrintWriter pw = new PrintWriter (bw);
 		) {
 			for (ProjectDescriptor project : PROJECTS.values ()) {
@@ -245,15 +245,19 @@ public class ProjectsManager {
     	    	descriptor.workingPeriod.compareAndSet (
     	    		period, Math.max (0, period - delta * (infinite ? 0 : 1)));
     	    	
+    	    	boolean active = false;
         		if (descriptor.workingPeriod.get () > 0 || infinite) {
         			descriptor.workingTime = descriptor.workingTime
         										.plusMillis (delta);
+        			active = true;
         		}
         		
         		pingTimer = Math.min (pingTimer + delta, 1000);
         		if (pingTimer >= 1000 && NETWORK.isConnected ()) { // 1 second timeout
-        			System.out.println ("Sending message");
-        			NETWORK.write ("I'm active " + descriptor.workingTime.toMillis () + " already");
+        			long time = descriptor.workingTime.toMillis ();
+        			String message = "project " + NETWORK.getProfile () + " " + time 
+        					+ " " + (active ? 1 : 0) + " " + descriptor.NAME.read ();
+        			NETWORK.write (message);
         			pingTimer = 0;
         		}
     	    }

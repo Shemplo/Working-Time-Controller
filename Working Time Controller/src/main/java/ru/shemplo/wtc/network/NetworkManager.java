@@ -216,6 +216,10 @@ public class NetworkManager implements AutoCloseable {
 		return login != null && login.length () > 0;
 	}
 	
+	public String getProfile () {
+		return hasProfile () ? login : "";
+	}
+	
 	public boolean isConnected () {
 		return State.CONNECTED.equals (STATE.get ());
 	}
