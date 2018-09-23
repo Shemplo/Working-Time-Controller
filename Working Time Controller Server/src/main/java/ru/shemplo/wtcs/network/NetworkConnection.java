@@ -10,7 +10,7 @@ public interface NetworkConnection extends AutoCloseable {
 	
 	public boolean hasInput ();
 	
-	public String pollInput ();
+	public byte [] pollInput ();
 	
 	public void update ();
 	

@@ -5,6 +5,6 @@ import java.io.InputStream;
 
 public interface MessageReader {
 	
-	public String read (InputStream is) throws IOException;
+	public byte [] read (InputStream is) throws IOException;
 	
 }

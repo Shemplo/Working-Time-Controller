@@ -4,5 +4,5 @@
 .settings/
 
 .classpath
-.project
+.project*
 /dependency-reduced-pom.xml

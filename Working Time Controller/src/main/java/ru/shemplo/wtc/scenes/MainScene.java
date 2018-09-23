@@ -28,13 +28,16 @@ import javafx.util.Duration;
 import ru.shemplo.wtc.Run;
 import ru.shemplo.wtc.logic.ProjectDescriptor;
 import ru.shemplo.wtc.logic.ProjectsManager;
+import ru.shemplo.wtc.network.NetworkManager;
 
 public class MainScene extends StackPane {
 	
 	private final ProjectsManager MANAGER;
-    
+	private final NetworkManager NETWORK;
+	
     public MainScene () throws IOException {
     	this.MANAGER = ProjectsManager.getInstance ();
+    	this.NETWORK = NetworkManager.getInstance ();
     	
         setPadding (new Insets (5, 10, 5, 10));
         setBackground (Run.LIGHT_GRAY_BG);
@@ -58,7 +61,7 @@ public class MainScene extends StackPane {
     
     public static enum SB /* Scene Buttons */ {
     	
-    	OPEN_MENU, CLOSE_MENU, INFINITY, STOP, EXIT
+    	OPEN_MENU, CLOSE_MENU, INFINITY, STOP, EXIT, CONNECT
     	;
     	
     	public final String TYPE = this.getClass ()
@@ -97,6 +100,23 @@ public class MainScene extends StackPane {
     	
     	closeMenu.setOnAction (ae -> menu.setVisible (false));
     	openMenu.setOnAction (ae -> menu.setVisible (true));
+    	
+    	Button connect = SB.CONNECT.get (this);
+    	connect.setOnMouseClicked (me -> {
+    		if (NETWORK.isConnected ()) {
+    			try {
+    				NETWORK.close ();
+    			} catch (Exception e) {
+    				e.printStackTrace ();
+    			}
+    		} else {
+    			try {
+        			NETWORK.connect ("localhost", 163, "shemplo");
+        		} catch (IOException ioe) {
+        			ioe.printStackTrace ();
+        		}
+    		}
+    	});
     	
     	Button inf = SB.INFINITY.get (this);
     	inf.setFocusTraversable (false);
@@ -180,6 +200,10 @@ public class MainScene extends StackPane {
     	
     	if (project == null) {
     		Platform.runLater (() -> {
+    			Button connect = SB.CONNECT.get (this);
+            	connect.setTextFill (NETWORK.isConnected () ? Color.GREEN : Color.RED);
+            	connect.setText (NETWORK.isConnected () ? "online" : "offline");
+            	
     			Button inf = SB.INFINITY.get (scene);
         		inf.setVisible (false);
         		
@@ -191,6 +215,10 @@ public class MainScene extends StackPane {
     	}
     	
     	Platform.runLater (() -> {
+    		Button connect = SB.CONNECT.get (this);
+        	connect.setTextFill (NETWORK.isConnected () ? Color.GREEN : Color.RED);
+        	connect.setText (NETWORK.isConnected () ? "online" : "offline");
+    		
     		boolean infinite = MANAGER.isInfinite ();
     		Button inf = SB.INFINITY.get (scene);
     		inf.setText (infinite ? "." : ">");

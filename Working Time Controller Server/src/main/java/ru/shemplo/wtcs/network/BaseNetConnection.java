@@ -7,8 +7,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
+
 import java.nio.charset.StandardCharsets;
+
+import java.net.Socket;
 
 import ru.shemplo.dsau.utils.ByteManip;
 import ru.shemplo.wtcs.Run;
@@ -20,12 +22,13 @@ public class BaseNetConnection implements NetworkConnection {
 	private final Socket SOCKET;
 	public final int ID;
 	
-	private final Queue <String> INPUT = new ConcurrentLinkedQueue <> ();
+	private final Queue <byte []> INPUT = new ConcurrentLinkedQueue <> ();
 	private final AtomicBoolean IS_UPDATING = new AtomicBoolean (false);
 	private final MessageReader MESSANGER = new BaseMessageReader ();
 	
 	private volatile boolean isConnected = true;
-	private volatile long lastUpdated = 0;
+	private volatile long lastUpdated = 0, 
+						  testTimeout = 0;
 	
 	private volatile OutputStream os;
 	private volatile InputStream is;
@@ -53,7 +56,7 @@ public class BaseNetConnection implements NetworkConnection {
 		return INPUT.size () > 0;
 	}
 	
-	public String pollInput () {
+	public byte [] pollInput () {
 		return INPUT.poll ();
 	}
 	
@@ -67,10 +70,9 @@ public class BaseNetConnection implements NetworkConnection {
 			&& IS_UPDATING.compareAndSet (false, true)) {
 			
 			try {
-				String input = MESSANGER.read (is);
-				if (input.length () != 0) { 
-					// TODO: send to commands processor
-					System.out.println (input);
+				byte [] input = MESSANGER.read (is);
+				if (input.length > 0) {
+					INPUT.add (input);
 				}
 			} catch (IOException ioe) {
 				is = null; return;
@@ -79,8 +81,33 @@ public class BaseNetConnection implements NetworkConnection {
 				e.printStackTrace ();
 			}
 			
+			testTimeout += delta;
+			if (testTimeout > Run.CONNECTION_TEST_TIMEOUT) {
+				try {
+					testConnection (); testTimeout = 0;
+				} catch (IOException ioe) {
+					isConnected = false;
+					return;
+				}
+			}
+			
 			lastUpdated = System.nanoTime ();
 			IS_UPDATING.set (false);
+		}
+	}
+	
+	private void testConnection () throws IOException {
+		OutputStream os = this.os;
+		if (os == null) { return; }
+		
+		synchronized (os) {
+			try {
+				os.write (ByteManip.I2B (-2));
+				os.flush ();
+			} catch (IOException ioe) {
+				this.os = null;
+				throw ioe;
+			}
 		}
 	}
 	
