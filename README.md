@@ -3,12 +3,18 @@
 
 ### How to use it
 
-1. add `dependencies` to maven with 
-`mvn istall:install-file -Dfile=<path> -DgroupId=ru.shemplo -DartifactId=dsau -Dversion=1.0.0 -Dpackaging=jar -DgeneratePom=true` 
-1. build project with `mvn clean package`
-1. run built `jar` file in `target` directory (`java -jar wtc-[version].jar`)
-1. click on `Project name` and in opened window define path to the project directory
-1. change something in project and see how your time is running
+1. Download release version from _[releases](https://github.com/Shemplo/Working-Time-Controller/releases)_
+2. Run executable `jar` file
+3. Click on `Project name` to set up projects
+4. Change something in your project and see how time is running
+
+### How to change (_contribute_) to
+
+1. Clone reposytory
+2. Create 2 separate projects in IDE (for _client_ and for _server_)
+3. In each of them add files from `dependencies` as dependencies
+4. Build project
+5. Modify code
 
 ### Preview
 
