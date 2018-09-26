@@ -46,7 +46,9 @@ public class Run extends Application {
         WHITE_BG      = new Background (new BackgroundFill (Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)),
         LIGHT_GRAY_BG = new Background (new BackgroundFill (Color.rgb (245, 245, 245), CornerRadii.EMPTY, Insets.EMPTY));
     
-    public static final Image ICON = new Image (Run.class.getResourceAsStream ("gfx/clock.png"));
+    public static final Image ICON = new Image (Run.class.getResourceAsStream ("gfx/clock.png")),
+    						  NETWORK_GREEN = new Image (Run.class.getResourceAsStream ("gfx/network-green.png")),
+    						  NETWORK_RED = new Image (Run.class.getResourceAsStream ("gfx/network-red.png"));
     
     public static final ProjectsManager MANAGER = ProjectsManager.getInstance ();
     

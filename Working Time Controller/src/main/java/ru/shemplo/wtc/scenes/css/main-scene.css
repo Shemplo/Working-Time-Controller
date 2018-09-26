@@ -1,3 +1,6 @@
+MainScene {
+	-fx-font-family: Consolas;
+}
 
 HBox {
 	-fx-padding: 5 0 0 0;
@@ -7,7 +10,7 @@ Label {
 	-fx-font-size: 12;
 	
 	-fx-wrap-text: true;
-	-fx-max-width: 300;
+	-fx-max-width: 325;
 	-fx-min-width: 80;
 }
 
@@ -17,7 +20,7 @@ Label {
 }
 
 #time_sl {
-	-fx-font-size: 22;
+	-fx-font-size: 32;
 }
 
 #menu_sgp {

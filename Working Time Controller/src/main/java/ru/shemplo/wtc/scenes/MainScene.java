@@ -19,12 +19,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 import ru.shemplo.wtc.Run;
 import ru.shemplo.wtc.logic.ProjectDescriptor;
 import ru.shemplo.wtc.logic.ProjectsManager;
@@ -46,7 +47,7 @@ public class MainScene extends StackPane {
     
     public static enum SL /* Scene Labels */ {
     	
-    	TITLE, NAME_INFO, NAME, PATH, TIME
+    	TITLE, NAME, PATH, STAT, TIME
     	;
     	
     	public final String TYPE = this.getClass ()
@@ -61,7 +62,7 @@ public class MainScene extends StackPane {
     
     public static enum SB /* Scene Buttons */ {
     	
-    	OPEN_MENU, CLOSE_MENU, INFINITY, STOP, EXIT, CONNECT
+    	INFINITY, STOP, EXIT
     	;
     	
     	public final String TYPE = this.getClass ()
@@ -74,33 +75,23 @@ public class MainScene extends StackPane {
     	
     }
     
-    public static enum SGP /* Scene Grid Panes */ {
+    public static enum SIV /* Scene ImageViews */ {
     	
-    	MENU
+    	NETWORK
     	;
     	
     	public final String TYPE = this.getClass ()
     				.getSimpleName ().toLowerCase ();
     	
-    	public GridPane get (Parent context) {
+    	public ImageView get (Parent context) {
     		String id = name ().toLowerCase () + "_" + TYPE;
-    		return (GridPane) context.lookup ("#" + id);
+    		return (ImageView) context.lookup ("#" + id);
     	}
     	
     }
     
     public void init () {
-    	GridPane menu = SGP.MENU.get (this);
-    	menu.setVisible (false);
-    	
-    	Button openMenu = SB.OPEN_MENU.get (this),
-    		   closeMenu = SB.CLOSE_MENU.get (this);
-    	closeMenu.setFocusTraversable (false);
-    	openMenu.setFocusTraversable (false);
-    	
-    	closeMenu.setOnAction (ae -> menu.setVisible (false));
-    	openMenu.setOnAction (ae -> menu.setVisible (true));
-    	
+    	/*
     	Button connect = SB.CONNECT.get (this);
     	connect.setOnMouseClicked (me -> {
     		if (NETWORK.isConnected ()) {
@@ -117,6 +108,7 @@ public class MainScene extends StackPane {
         		}
     		}
     	});
+    	*/
     	
     	Button inf = SB.INFINITY.get (this);
     	inf.setFocusTraversable (false);
@@ -147,12 +139,9 @@ public class MainScene extends StackPane {
     	});
     	
     	Label title = SL.TITLE.get (this);
-    	title.setText (Run.TITLE);
-    	
-    	Label name = SL.NAME_INFO.get (this);
-    	name.setTextFill (Color.BLUE);
-    	name.setCursor (Cursor.HAND);
-    	name.setOnMouseClicked (me -> {
+    	title.setTextFill (Color.GRAY);
+    	title.setCursor (Cursor.HAND);
+    	title.setOnMouseClicked (me -> {
     		try {
     			URL resource = getSystemResource (Run.PROJECTS_SCENE_FXML);
                 Scene scene = new Scene (FXMLLoader.load (resource));
@@ -181,8 +170,24 @@ public class MainScene extends StackPane {
     		}
     	});
     	
-    	name = SL.NAME.get (this);
-    	name.setTextFill (Color.GRAY);
+    	ImageView network = SIV.NETWORK.get (this);
+    	network.setImage (Run.NETWORK_RED);
+    	network.setCursor (Cursor.HAND);
+    	network.setOnMouseClicked (me -> {
+    		if (NETWORK.isConnected ()) {
+    			try {
+    				NETWORK.close ();
+    			} catch (Exception e) {
+    				e.printStackTrace ();
+    			}
+    		} else {
+    			try {
+        			NETWORK.connect ("localhost", 163, "shemplo");
+        		} catch (IOException ioe) {
+        			ioe.printStackTrace ();
+        		}
+    		}
+    	});
     	
     	Timeline updater = new Timeline (
         	new KeyFrame (Duration.millis (0), e -> updateGUI ()),
@@ -200,25 +205,21 @@ public class MainScene extends StackPane {
     	
     	if (project == null) {
     		Platform.runLater (() -> {
-    			Button connect = SB.CONNECT.get (this);
-            	connect.setTextFill (NETWORK.isConnected () ? Color.GREEN : Color.RED);
-            	connect.setText (NETWORK.isConnected () ? "online" : "offline");
-            	
     			Button inf = SB.INFINITY.get (scene);
         		inf.setVisible (false);
         		
         		Button stop = SB.STOP.get (scene);
         		stop.setVisible (false);
+        		
+        		ImageView network = SIV.NETWORK.get (this);
+            	network.setImage (NETWORK.isConnected () 
+            		? Run.NETWORK_GREEN : Run.NETWORK_RED);
     		});
     		
     		return;
     	}
     	
     	Platform.runLater (() -> {
-    		Button connect = SB.CONNECT.get (this);
-        	connect.setTextFill (NETWORK.isConnected () ? Color.GREEN : Color.RED);
-        	connect.setText (NETWORK.isConnected () ? "online" : "offline");
-    		
     		boolean infinite = MANAGER.isInfinite ();
     		Button inf = SB.INFINITY.get (scene);
     		inf.setText (infinite ? "." : ">");
@@ -227,12 +228,21 @@ public class MainScene extends StackPane {
     		Button stop = SB.STOP.get (scene);
     		stop.setVisible (true);
     		
-    		Label name = SL.NAME.get (scene);
-    		name.setText (project.NAME.read ());
-    		name.setTextFill (Color.BLACK);
+    		Label title = SL.TITLE.get (scene);
+    		title.setText (project.NAME.read ());
+    		title.setTextFill (Color.BLACK);
     		
     		Label path = SL.PATH.get (scene);
     		path.setText (project.PATH.read ());
+    		
+    		Label stat = SL.STAT.get (scene);
+    		int dirs = MANAGER.getNumberOfDirectories ();
+    		stat.setText ("In project: " + dirs + " tracking entr" 
+    							+ (dirs == 1 ? "y" : "ies"));
+    		
+    		ImageView network = SIV.NETWORK.get (this);
+        	network.setImage (NETWORK.isConnected () 
+        		? Run.NETWORK_GREEN : Run.NETWORK_RED);
     		
     		long secondz = project.workingTime.get (ChronoUnit.SECONDS),
                	 seconds = secondz % 60,

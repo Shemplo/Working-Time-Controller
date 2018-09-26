@@ -316,6 +316,13 @@ public class ProjectsManager {
 		return currentProject;
 	}
 	
+	public int getNumberOfDirectories () {
+		ProjectDescriptor descriptor = getCurrentProject ();
+		if (descriptor == null) { return 0; }
+		
+		return descriptor.getNumberOfPaths ();
+	}
+	
 	public void stopStopwatch () {
 		ProjectDescriptor descriptor = getCurrentProject ();
 		if (descriptor == null) { return; }
