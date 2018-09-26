@@ -9,86 +9,71 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.image.ImageView?>
 
 <MainScene
 	xmlns:fx="http://javafx.com/fxml/1"
 	alignment="TOP_RIGHT">
-	<VBox minWidth="300">
-		<Label 
-			styleClass="title" 
-			text="TITLE" 
-			fx:id="title_sl">
-			<VBox.margin>
-				<Insets right="50" />
-			</VBox.margin>
-		</Label>
-		
-		<HBox>
-			<Label 
-				text="Project name: " 
-				fx:id="name_info_sl" />
-			<Label 
-				text="[ &lt;- click here to open project ]" 
-				fx:id="name_sl" />
-		</HBox>
-		
-		<HBox>
-			<Label text="Project path: "/>
-			<Label 
-				text="[ here will be displaied path to your project ]" 
-				fx:id="path_sl" />
-		</HBox>
-		
-		<HBox alignment="BASELINE_LEFT">
-			<Label text="Working time: "/>
-			<Label
-				text="00:00:00" 
-				fx:id="time_sl" />
+	<VBox>
+		<HBox alignment="CENTER_LEFT">
+			<VBox>
+				<Button
+					fx:id="infinity_sb"
+					text="&gt;">
+					<VBox.margin>
+						<Insets bottom="5"/>
+					</VBox.margin>
+				</Button>
+				<Button
+					fx:id="stop_sb"
+					text="■">
+					<VBox.margin>
+						<Insets bottom="0"/>
+					</VBox.margin>
+				</Button>
+				
+				<HBox.margin>
+					<Insets right="10" />
+				</HBox.margin>
+			</VBox>
+			
+			<VBox
+				minWidth="100" 
+				alignment="CENTER">
+				<Label fx:id="time_sl" />
+				<padding>
+					<Insets right="10" />
+				</padding>
+			</VBox>
+			
+			<VBox alignment="CENTER_LEFT">
+				<Label 
+					styleClass="title" 
+					text="[ click to open project ]" 
+					fx:id="title_sl"/>
+				<Label
+					text="- here will be path to the project -"
+					fx:id="path_sl" />
+					
+				<Label fx:id="stat_sl" />
+				
+				<HBox.margin>
+					<Insets right="10" />
+				</HBox.margin>
+			</VBox>
+			
+			<VBox alignment="TOP_CENTER">
+				<Button
+					styleClass="warn_button"
+					fx:id="exit_sb"
+					text="X">
+					<VBox.margin>
+						<Insets bottom="7.5" />
+					</VBox.margin>
+				</Button>
+				<ImageView fx:id="network_siv"/>
+			</VBox>
 		</HBox>
 	</VBox>
-	
-	<Button
-		fx:id="open_menu_sb"
-		text="≡" />
-	
-	<GridPane
-		alignment="TOP_RIGHT"
-		hgap="7.5" vgap="7.5"
-		visible="true"
-		fx:id="menu_sgp">
-		<Button
-			GridPane.halignment="CENTER"
-			GridPane.rowIndex="0"
-			GridPane.columnIndex="0"
-			GridPane.columnSpan="1"
-			styleClass="warn_button"
-			fx:id="exit_sb"
-			text="X" />
-		<Button
-			GridPane.rowIndex="0"
-			GridPane.columnIndex="1"
-			fx:id="close_menu_sb"
-			text="≡" />
-			
-		<Button
-			GridPane.halignment="RIGHT"
-			GridPane.hgrow="ALWAYS"
-			GridPane.rowIndex="1"
-			GridPane.columnIndex="0"
-			GridPane.columnSpan="2"
-			fx:id="connect_sb"
-			text="offline" /> 
-			
-		<Button
-			GridPane.rowIndex="2"
-			GridPane.columnIndex="0"
-			fx:id="infinity_sb"
-			text="&gt;" />
-		<Button
-			GridPane.rowIndex="2"
-			GridPane.columnIndex="1"
-			fx:id="stop_sb"
-			text="■" />
-	</GridPane>
 </MainScene>
 

@@ -78,6 +78,10 @@ public class ProjectDescriptor {
 		return this.PATHS.get (key);
 	}
 	
+	public int getNumberOfPaths () {
+		return PATHS.size ();
+	}
+	
 	public void dropStructure () {
 		PATHS.clear ();
 	}
