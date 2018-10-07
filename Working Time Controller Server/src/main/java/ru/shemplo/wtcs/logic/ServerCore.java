@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.IOException;
 
-import ru.shemplo.dsau.utils.TimeoutEvent;
+import ru.shemplo.snowball.utils.time.TimeoutEvent;
 import ru.shemplo.wtcs.Run;
 import ru.shemplo.wtcs.logic.handlers.BaseCommandsHandler;
 import ru.shemplo.wtcs.network.ConnectionsAcceptor;

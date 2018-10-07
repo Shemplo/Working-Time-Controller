@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.net.Socket;
 
-import ru.shemplo.dsau.utils.ByteManip;
+import ru.shemplo.snowball.utils.ByteManip;
 import ru.shemplo.wtcs.Run;
 import ru.shemplo.wtcs.logic.BaseMessageReader;
 import ru.shemplo.wtcs.logic.MessageReader;

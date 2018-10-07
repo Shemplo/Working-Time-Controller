@@ -3,7 +3,7 @@ package ru.shemplo.wtcs.logic;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ru.shemplo.dsau.utils.ByteManip;
+import ru.shemplo.snowball.utils.ByteManip;
 
 public class BaseMessageReader implements MessageReader {
 

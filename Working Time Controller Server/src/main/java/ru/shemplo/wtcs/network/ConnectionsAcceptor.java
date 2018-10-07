@@ -14,8 +14,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import ru.shemplo.dsau.stuctures.Pair;
-import ru.shemplo.dsau.utils.ByteManip;
+import ru.shemplo.snowball.stuctures.Pair;
+import ru.shemplo.snowball.utils.ByteManip;
 import ru.shemplo.wtcs.Run;
 
 public class ConnectionsAcceptor implements AutoCloseable {
@@ -80,10 +80,6 @@ public class ConnectionsAcceptor implements AutoCloseable {
 						try {
 							entry.F.close ();
 						} catch (Exception e) {}
-						
-						if (os != null) {
-							try { os.close (); } catch (Exception e) {}
-						}
 						
 						continue;
 					}

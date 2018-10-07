@@ -1,6 +1,6 @@
 package ru.shemplo.wtcs.logic;
 
-import ru.shemplo.dsau.stuctures.OwnedVariable;
+import ru.shemplo.snowball.stuctures.OwnedVariable;
 
 public class ProjectDescriptor {
 
