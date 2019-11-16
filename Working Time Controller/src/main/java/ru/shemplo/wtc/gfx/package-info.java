@@ -5,4 +5,4 @@
  * @author Shemplo
  *
  */
-package ru.shemplo.wtc;
+package ru.shemplo.wtc.gfx;
