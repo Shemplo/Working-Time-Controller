@@ -17,6 +17,7 @@
 
 <StackPane xmlns="http://javafx.com/javafx" 
 		xmlns:fx="http://javafx.com/fxml"
+	    fx:controller="ru.shemplo.wtc.gfx.controllers.MainController"
         fx:id="root">
 	<padding>
 		<Insets top="8" right="8" bottom="8" left="8"/>
@@ -25,18 +26,29 @@
     <VBox spacing="8" minWidth="200">
     	<HBox spacing="8">
 			<VBox HBox.hgrow="ALWAYS">
-				<Label text="10:23:54" />
-				<Label text="Timer: 54s" />
+				<Label fx:id="timeCounterValue" text="10:23:54">
+					<VBox.margin>
+						<Insets right="8" left="8"/>
+					</VBox.margin>
+				</Label>
+				<Label fx:id="timeTimerValue" text="07s remain">
+					<VBox.margin>
+						<Insets bottom="16" />
+					</VBox.margin>
+				</Label>
+				<Label fx:id="projectNameValue" text="Omnics" />
 			</VBox>
 
     		<VBox spacing="8">
-    			<Button text="X" />
+				<Button fx:id="exitButton" text="X" styleClass="bg_red">
+					<VBox.margin>
+						<Insets bottom="8"/>
+					</VBox.margin>
+				</Button>
     			<Button text=">" />
+				<Button text="#" />
+				<Button text="..." />
     		</VBox>
-    	</HBox>
-
-    	<HBox spacing="8">
-    		<Label text="Very very long phrase" />
     	</HBox>
     </VBox>
 </StackPane>

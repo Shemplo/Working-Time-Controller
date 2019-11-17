@@ -1,0 +1,25 @@
+Button {
+    -fx-background-color: gray;
+    -fx-background-radius: 0;
+    -fx-min-height: 28px;
+    -fx-min-width: 28px;
+    -fx-opacity: 0.5;
+}
+
+Button:hover {
+    -fx-cursor: HAND;
+    -fx-opacity: 1;
+}
+
+.bg_red {
+    -fx-background-color: rgb(225,0,0);
+}
+
+#timeCounterValue {
+    -fx-font-weight: bold;
+    -fx-font-size: 40px;
+}
+
+#projectNameValue {
+	-fx-font-size: 20px;
+}
