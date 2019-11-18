@@ -15,10 +15,12 @@
 
 <?import javafx.scene.control.Separator?>
 
-<StackPane xmlns="http://javafx.com/javafx" 
-		xmlns:fx="http://javafx.com/fxml"
-	    fx:controller="ru.shemplo.wtc.gfx.controllers.MainController"
-        fx:id="root">
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.Background?>
+<StackPane xmlns="http://javafx.com/javafx"
+		   xmlns:fx="http://javafx.com/fxml"
+		   fx:controller="ru.shemplo.wtc.gfx.controllers.MainController"
+		   fx:id="root">
 	<padding>
 		<Insets top="8" right="8" bottom="8" left="8"/>
 	</padding>
@@ -31,12 +33,11 @@
 						<Insets right="8" left="8"/>
 					</VBox.margin>
 				</Label>
-				<Label fx:id="timeTimerValue" text="07s remain">
-					<VBox.margin>
-						<Insets bottom="16" />
-					</VBox.margin>
-				</Label>
+				<HBox VBox.vgrow="ALWAYS" alignment="TOP_CENTER">
+					<ProgressBar fx:id="timeTimerValue" progress="0" />
+				</HBox>
 				<Label fx:id="projectNameValue" text="Omnics" />
+				<Label fx:id="projectStructure" text="4 folders, 24 files" />
 			</VBox>
 
     		<VBox spacing="8">
@@ -45,9 +46,9 @@
 						<Insets bottom="8"/>
 					</VBox.margin>
 				</Button>
-    			<Button text=">" />
-				<Button text="#" />
-				<Button text="..." />
+    			<Button fx:id="startButton" text=">" />
+				<Button fx:id="stopButton" text="■" />
+				<Button fx:id="settingButton" text="..." />
     		</VBox>
     	</HBox>
     </VBox>

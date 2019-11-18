@@ -4,6 +4,9 @@ Button {
     -fx-min-height: 28px;
     -fx-min-width: 28px;
     -fx-opacity: 0.5;
+
+    -fx-text-fill: lightgray;
+    -fx-font-weight: bold;
 }
 
 Button:hover {
@@ -18,6 +21,10 @@ Button:hover {
 #timeCounterValue {
     -fx-font-weight: bold;
     -fx-font-size: 40px;
+}
+
+#timeTimerValue {
+
 }
 
 #projectNameValue {
