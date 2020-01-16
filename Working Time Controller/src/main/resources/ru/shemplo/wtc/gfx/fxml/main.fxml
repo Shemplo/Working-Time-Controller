@@ -5,20 +5,12 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
-
-<?import javafx.scene.control.Separator?>
-
 <?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.layout.Background?>
-<StackPane xmlns="http://javafx.com/javafx"
-		   xmlns:fx="http://javafx.com/fxml"
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
 		   fx:controller="ru.shemplo.wtc.gfx.controllers.MainController"
 		   fx:id="root">
 	<padding>
@@ -46,9 +38,9 @@
 						<Insets bottom="8"/>
 					</VBox.margin>
 				</Button>
-    			<Button fx:id="startButton" text=">" />
-				<Button fx:id="stopButton" text="■" />
-				<Button fx:id="settingButton" text="..." />
+    			<Button fx:id="startButton" styleClass="btn-dark" text=">" />
+				<Button fx:id="stopButton" styleClass="btn-dark" text="■" />
+				<Button fx:id="settingButton" styleClass="btn-dark" text="..." />
     		</VBox>
     	</HBox>
     </VBox>

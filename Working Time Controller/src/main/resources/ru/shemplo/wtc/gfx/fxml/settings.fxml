@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="ru.shemplo.wtc.gfx.controllers.SettingsController">
+    <padding>
+        <Insets top="8" right="8" bottom="8" left="8"/>
+    </padding>
+
+    <HBox spacing="8">
+        <VBox spacing="8">
+            <HBox spacing="8" alignment="CENTER_RIGHT">
+                <Button fx:id="addButton" styleClass="btn-dark" text="+"/>
+                <Button fx:id="removeButton" styleClass="btn-dark" text="--"/>
+            </HBox>
+
+            <ListView fx:id="projectsList"  VBox.vgrow="ALWAYS"/>
+        </VBox>
+        <VBox fx:id="rightPanel" spacing="8" minWidth="200" disable="true">
+            <Label text="Project settings" styleClass="h-3">
+                <VBox.margin>
+                    <Insets bottom="8"/>
+                </VBox.margin>
+            </Label>
+
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label styleClass="mnw-90" text="Project name:" />
+                <TextField fx:id="projectName" HBox.hgrow="ALWAYS" />
+            </HBox>
+
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label styleClass="mnw-90" text="Project location:" />
+                <TextField fx:id="projectPath" HBox.hgrow="ALWAYS" />
+                <Button fx:id="selectLocationButton" styleClass="btn-link" text="..." />
+            </HBox>
+
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label styleClass="mnw-90" text="Enable ignoring:" />
+                <CheckBox />
+
+                <Label text="(each template should starts from new line)" />
+            </HBox>
+
+            <HBox spacing="8">
+                <Label styleClass="mnw-90" text="Ignoring files:" />
+                <TextArea fx:id="projectIgnores" styleClass="mxw-300, mxh-100" HBox.hgrow="ALWAYS" />
+            </HBox>
+
+            <HBox spacing="8">
+                <Label styleClass="mnw-90" text="Description:" />
+                <TextArea fx:id="projectDescription" styleClass="mxw-300, mxh-100" HBox.hgrow="ALWAYS" />
+            </HBox>
+
+            <HBox spacing="8" alignment="CENTER_RIGHT">
+                <Button fx:id="saveButton" styleClass="btn-dark" text="save" />
+                <Button fx:id="saveAndOpenButton" styleClass="btn-dark" text="save &amp; open" />
+            </HBox>
+        </VBox>
+    </HBox>
+</StackPane>

@@ -1,12 +1,8 @@
 Button {
-    -fx-background-color: gray;
     -fx-background-radius: 0;
     -fx-min-height: 28px;
     -fx-min-width: 28px;
     -fx-opacity: 0.5;
-
-    -fx-text-fill: lightgray;
-    -fx-font-weight: bold;
 }
 
 Button:hover {
@@ -14,8 +10,69 @@ Button:hover {
     -fx-opacity: 1;
 }
 
+.btn-sm {
+    -fx-min-height: 16px !important;
+    -fx-min-width: 16px !important;
+}
+
+.btn-bright {
+    -fx-background-color: whitesmoke !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: gray !important;
+}
+
+.btn-dark {
+    -fx-background-color: gray !important;
+    -fx-text-fill: lightgray !important;
+    -fx-font-weight: bold !important;
+}
+
+.btn-link {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: blue !important;
+}
+
 .bg_red {
     -fx-background-color: rgb(225,0,0);
+}
+
+.h-1 {
+    -fx-font-weight: bold;
+    -fx-font-size: 24pt;
+}
+
+.h-2 {
+    -fx-font-weight: bold;
+    -fx-font-size: 20pt;
+}
+
+.h-3 {
+    -fx-font-weight: bold;
+    -fx-font-size: 16pt;
+}
+
+.mnw-90 {
+    -fx-min-width: 90px;
+}
+
+.mxw-200 {
+    -fx-max-width: 200px;
+}
+
+.mxw-240 {
+    -fx-max-width: 240px;
+}
+
+.mxw-260 {
+    -fx-max-width: 260px;
+}
+
+.mxw-300 {
+    -fx-max-width: 300px;
+}
+
+.mxh-100 {
+    -fx-max-height: 100px;
 }
 
 #timeCounterValue {
@@ -29,4 +86,22 @@ Button:hover {
 
 #projectNameValue {
 	-fx-font-size: 20px;
+}
+
+#projectsList {
+    -fx-max-width: 200px;
+
+    -fx-pref-height: 200px;
+}
+
+#projectsList ProjectCell Button {
+    -fx-opacity: 0;
+}
+
+#projectsList ProjectCell:hover Button {
+    -fx-opacity: 1;
+}
+
+#projectsList ProjectCell:selected Button {
+    -fx-text-fill: white !important;
 }
